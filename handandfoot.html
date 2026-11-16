@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hand and Foot Card Game - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+      --card-width: clamp(58px, 10vw, 85px);
+      --card-height: calc(var(--card-width) * 1.42);
+      --card-radius: clamp(6px, 1.2vw, 10px);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 110px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .solitaire-card {
+      width: var(--card-width);
+      height: var(--card-height);
+      border-radius: var(--card-radius);
+      position: relative;
+      transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      flex-shrink: 0;
+    }
+
+    .solitaire-card.face-up {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      box-shadow: -2px 3px 10px rgba(0, 0, 0, 0.35);
+    }
+
+    .solitaire-card.face-down {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .solitaire-card.face-down::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: calc(var(--card-radius) - 3px);
+      border: 1px dashed rgba(255, 255, 255, 0.45);
+      background: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.12) 2px, transparent 2px) 0 0 / 12px 12px,
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 6px, transparent 6px, transparent 12px);
+    }
+
+    .solitaire-card.red {
+      color: #e63946;
+    }
+
+    .solitaire-card.black {
+      color: #0f172a;
+    }
+
+    .card-slot {
+      width: var(--card-width);
+      height: var(--card-height);
+      border-radius: var(--card-radius);
+      border: 2px dashed rgba(255, 255, 255, 0.25);
+      background-color: rgba(0, 0, 0, 0.22);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Fanned Player Hand */
+    .fan-hand-wrapper {
+      position: relative;
+      height: calc(var(--card-height) + 16px);
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .fan-card {
+      position: absolute;
+      bottom: 2px;
+      transform-origin: 50% 140%;
+    }
+
+    .fan-card:hover {
+      z-index: 60 !important;
+    }
+
+    .fan-card.selected {
+      outline: 3px solid #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.95);
+      z-index: 65 !important;
+    }
+
+    /* Larger Bot/Partner Fanned Hands */
+    .mini-fan-horizontal {
+      position: relative;
+      height: 72px;
+      width: 240px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mini-fan-vertical {
+      position: relative;
+      width: 72px;
+      height: 190px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Meld Box keeping vertical stacks inside without scroll */
+    .meld-box-fixed {
+      height: 125px;
+      overflow: hidden;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 3px 5px;
+    }
+
+    .meld-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 10px;
+      padding: 3px 5px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-2 sm:px-4 py-1.5 justify-between">
+    
+    <!-- NAVIGATION BAR -->
+    <nav class="glass-panel rounded-xl px-3 py-1 flex items-center justify-between shadow-lg">
+      <a href="index.html" class="flex items-center gap-2 group hover:opacity-90 transition-opacity">
+        <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-md">
+          <i class="fa-solid fa-crown text-[10px]"></i>
+        </div>
+        <span class="text-amber-300 font-extrabold uppercase tracking-wider text-xs" style="font-family: 'Cinzel', serif;">(Website Name)</span>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- HEADER / SCOREBOARD BAR -->
+    <header class="glass-panel rounded-xl px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg">
+          <i class="fa-solid fa-users text-xs"></i>
+        </div>
+        <div>
+          <h1 class="text-xs sm:text-sm font-extrabold tracking-wider text-amber-300 uppercase leading-none" style="font-family: 'Cinzel', serif;">Hand &amp; Foot (2v2)</h1>
+          <span class="text-[9px] text-emerald-200/70 font-semibold">4-Player Table</span>
+        </div>
+      </div>
+
+      <!-- Score Summary -->
+      <div class="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-xl border border-white/10 text-xs">
+        <div class="flex flex-col items-center">
+          <span class="text-[8px] text-amber-300/90 font-bold uppercase">Your Team</span>
+          <span id="team1-score" class="font-extrabold text-amber-300 text-xs">0 pts</span>
+        </div>
+        <div class="h-4 w-px bg-white/10"></div>
+        <div class="flex flex-col items-center">
+          <span class="text-[8px] text-sky-300/90 font-bold uppercase">Opponents</span>
+          <span id="team2-score" class="font-extrabold text-white text-xs">0 pts</span>
+        </div>
+        <div class="h-4 w-px bg-white/10"></div>
+        <div class="flex flex-col items-center">
+          <span class="text-[8px] text-emerald-300/80 font-bold uppercase">Turn</span>
+          <span id="turn-indicator" class="font-bold text-emerald-200 text-[11px]">Your Turn</span>
+        </div>
+      </div>
+
+      <!-- RULES & NEW GAME BUTTONS -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span class="hidden sm:inline">Rules</span>
+        </button>
+        <button id="new-game-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-plus"></i>
+          <span>+ New Game</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 4-PLAYER TABLE ARENA -->
+    <main class="flex-1 flex flex-col justify-between items-center w-full relative py-0.5">
+      
+      <!-- TOP SEAT: PARTNER -->
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center gap-2 bg-black/40 px-2.5 py-0.5 rounded-full border border-amber-400/30 text-[10px] font-bold text-amber-300 mb-0.5 shadow">
+          <i class="fa-solid fa-user-group text-[10px]"></i>
+          <span id="partner-name">Bot 1</span>
+          <span class="text-white/30">|</span>
+          <span id="partner-counts" class="text-emerald-200 font-semibold">Hand: 11 • Foot: 11</span>
+        </div>
+        <div id="partner-hand" class="mini-fan-horizontal"></div>
+      </div>
+
+      <!-- MIDDLE ROW: LEFT OPPONENT | TABLE AREA | RIGHT OPPONENT -->
+      <div class="w-full grid grid-cols-[80px_1fr_80px] sm:grid-cols-[120px_1fr_120px] items-center gap-2 my-0.5">
+        
+        <!-- LEFT SEAT: OPPONENT 1 -->
+        <div class="flex flex-col items-center justify-center">
+          <div class="bg-black/40 px-1.5 py-0.5 rounded-lg border border-sky-400/30 text-[10px] font-bold text-sky-300 text-center mb-0.5 shadow">
+            <div id="opp1-name">Bot 2</div>
+            <div id="opp1-counts" class="text-[9px] text-white/90 font-semibold">H:11 F:11</div>
+          </div>
+          <div id="opp1-hand" class="mini-fan-vertical"></div>
+        </div>
+
+        <!-- CENTER TABLE: MELDS & ACTION STATUS -->
+        <div class="flex flex-col items-center justify-center gap-1 w-full">
+          
+          <!-- LIVE TURN ACTION NOTIFICATION BANNER -->
+          <div id="action-banner" class="bg-amber-500/20 border border-amber-400/40 text-amber-200 px-3 py-0.5 rounded-lg text-[10px] font-bold shadow text-center tracking-wide min-h-[20px] flex items-center justify-center">
+            Your turn: Draw 2 cards or play melds.
+          </div>
+
+          <!-- TEAM MELDS CONTAINER -->
+          <div class="w-full max-w-2xl flex flex-col gap-1">
+            <!-- YOUR TEAM MELDS -->
+            <div class="glass-panel rounded-xl px-2 py-1 border border-amber-400/25">
+              <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-0.5 px-0.5">
+                <span><i class="fa-solid fa-star mr-1"></i> Your Team's Melds</span>
+                <span id="req-meld-badge" class="text-[9px] text-amber-200 bg-black/50 px-2 py-0.2 rounded-full border border-amber-400/30 font-semibold normal-case">Initial Req: 50 pts</span>
+              </div>
+              <div id="team1-melds" class="meld-box-fixed">
+                <span class="text-[11px] text-white/40 italic">No melds laid down yet</span>
+              </div>
+            </div>
+
+            <!-- OPPONENTS' MELDS -->
+            <div class="glass-panel rounded-xl px-2 py-1 border border-sky-400/20">
+              <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-sky-300 mb-0.5 px-0.5">
+                <span><i class="fa-solid fa-shield-halved mr-1"></i> Opponents' Melds</span>
+              </div>
+              <div id="team2-melds" class="meld-box-fixed">
+                <span class="text-[11px] text-white/40 italic">No opponent melds yet</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SEAT: OPPONENT 2 -->
+        <div class="flex flex-col items-center justify-center">
+          <div class="bg-black/40 px-1.5 py-0.5 rounded-lg border border-sky-400/30 text-[10px] font-bold text-sky-300 text-center mb-0.5 shadow">
+            <div id="opp2-name">Bot 3</div>
+            <div id="opp2-counts" class="text-[9px] text-white/90 font-semibold">H:11 F:11</div>
+          </div>
+          <div id="opp2-hand" class="mini-fan-vertical"></div>
+        </div>
+
+      </div>
+
+      <!-- BELOW MELDS: STOCK, DRAW 2 & DISCARD PILES -->
+      <div class="flex items-center justify-center gap-3 my-0.5">
+        <div class="flex flex-col items-center gap-0.5">
+          <div id="stock-pile" class="solitaire-card face-down cursor-pointer hover:scale-105 transition-all shadow-lg flex items-center justify-center" title="Click Stock to Draw 2 Cards">
+            <span id="stock-count" class="absolute bottom-1 right-1 text-[9px] font-black text-white bg-black/60 px-1 rounded">267</span>
+          </div>
+          <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-200/75">Stock</span>
+        </div>
+
+        <button id="mid-draw-btn" class="bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black px-3 py-2 rounded-xl text-xs shadow-lg flex flex-col items-center gap-0.5 border border-amber-200 transition-all active:scale-95">
+          <div class="flex items-center gap-1">
+            <i class="fa-solid fa-plus-circle text-sm"></i>
+            <span>Draw 2 Cards</span>
+          </div>
+          <span class="text-[8px] font-semibold text-slate-900/80">or click Stock deck</span>
+        </button>
+
+        <div class="flex flex-col items-center gap-0.5">
+          <div id="discard-pile" class="card-slot flex items-center justify-center cursor-pointer hover:border-amber-400 transition-colors shadow-lg" title="Discard Pile"></div>
+          <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-200/75">Discard</span>
+        </div>
+      </div>
+
+      <!-- BOTTOM SEAT: YOUR FANNED HAND -->
+      <div class="w-full flex flex-col items-center pb-1">
+        <!-- ACTION BUTTONS -->
+        <div id="action-buttons-container" class="hidden flex-wrap items-center justify-center gap-2 mb-1 z-30">
+          <button id="meld-btn" disabled class="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 px-5 py-2 rounded-xl text-xs sm:text-sm font-black shadow-xl transition-all flex items-center gap-1.5 border border-amber-200 active:scale-95">
+            <i class="fa-solid fa-layer-group text-sm"></i>
+            <span>Meld Selected</span>
+          </button>
+
+          <button id="discard-btn" disabled class="bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2 rounded-xl text-xs sm:text-sm font-black shadow-xl transition-all flex items-center gap-1.5 border border-red-400 active:scale-95">
+            <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
+            <span>Discard</span>
+          </button>
+
+          <button id="clear-select-btn" class="bg-white/20 hover:bg-white/30 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow border border-white/20 active:scale-95">
+            Clear
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 mb-0.5 z-20">
+          <div class="bg-black/50 backdrop-blur-md px-3 py-0.5 rounded-full border border-white/15 text-[11px] font-bold text-amber-300 flex items-center gap-2 shadow">
+            <span id="player-status-label">Your Hand (11)</span>
+            <span id="selected-counter" class="hidden bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded-full text-[9px] font-black">0 Selected</span>
+          </div>
+        </div>
+
+        <div id="player-cards-container" class="fan-hand-wrapper"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-xl px-4 py-3 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Hand and Foot Rules</h2>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong class="text-amber-300">Objective:</strong> Form melds and books of cards with your partner, play through both your Hand and your Foot, and score the most points.</p>
+        <p><strong class="text-amber-300">Minimum Initial Melds:</strong> Your team's first meld of a round must meet minimum point requirements based on your team's total score (50 pts for 0 score, 90 pts for 1-1495, 120 pts for 1500-2995, and 150 pts for 3000+).</p>
+        <p><strong class="text-amber-300">Books:</strong> A book requires 7 or more cards of the same rank. <em class="text-amber-200">Clean Books</em> (no wild cards) score +500 points. <em class="text-amber-200">Dirty Books</em> (containing wild cards like 2s or Jokers) score +300 points.</p>
+        <p><strong class="text-amber-300">Card Point Values:</strong> Jokers = 50 pts; Aces & 2s = 20 pts; 8 through King = 10 pts; 4 through 7 = 5 pts.</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const RANKS_ORDER = ['4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2', 'Joker'];
+    const VALUES = { '4':5, '5':5, '6':5, '7':5, '8':10, '9':10, '10':10, 'J':10, 'Q':10, 'K':10, 'A':20, '2':20, 'Joker':50 };
+
+    let gameState = {
+      stock: [],
+      discardPile: [],
+      players: {
+        you: { name: 'You', hand: [], foot: [], team: 1, inFoot: false },
+        opp1: { name: 'Bot 2', hand: [], foot: [], team: 2, inFoot: false },
+        partner: { name: 'Bot 1', hand: [], foot: [], team: 1, inFoot: false },
+        opp2: { name: 'Bot 3', hand: [], foot: [], team: 2, inFoot: false }
+      },
+      team1Melds: [],
+      team2Melds: [],
+      turnIndex: 0,
+      hasDrawn: false,
+      selectedCardIds: [],
+      team1Score: 0,
+      team2Score: 0,
+      roundInitialReq: 50,
+      statusMessage: 'Your turn: Draw 2 cards or play melds.'
+    };
+
+    const turnOrder = ['you', 'opp1', 'partner', 'opp2'];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('new-game-btn').addEventListener('click', startNewGame);
+      document.getElementById('mid-draw-btn').addEventListener('click', playerDrawCards);
+      document.getElementById('stock-pile').addEventListener('click', playerDrawCards);
+      document.getElementById('discard-btn').addEventListener('click', playerDiscardSelected);
+      document.getElementById('meld-btn').addEventListener('click', playerMeldSelected);
+      document.getElementById('clear-select-btn').addEventListener('click', () => {
+        gameState.selectedCardIds = [];
+        renderUI();
+      });
+      window.addEventListener('resize', renderUI);
+      startNewGame();
+    });
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function getMinimumMeldRequirement(score) {
+      if (score <= 0) return 50;
+      if (score < 1500) return 90;
+      if (score < 3000) return 120;
+      return 150;
+    }
+
+    function createMultiDeck() {
+      let deck = [];
+      let id = 0;
+      for (let d = 0; d < 6; d++) {
+        ['♠', '♥', '♣', '♦'].forEach(suit => {
+          const color = (suit === '♥' || suit === '♦') ? 'red' : 'black';
+          ['4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'].forEach(rank => {
+            deck.push({ id: id++, rank, suit, color, points: VALUES[rank] });
+          });
+        });
+        for (let j = 0; j < 4; j++) {
+          deck.push({ id: id++, rank: 'Joker', suit: '★', color: 'red', points: 50 });
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function sortHand(hand) {
+      return hand.sort((a, b) => {
+        let indexA = RANKS_ORDER.indexOf(a.rank);
+        let indexB = RANKS_ORDER.indexOf(b.rank);
+        if (indexA !== indexB) return indexA - indexB;
+        return a.suit.localeCompare(b.suit);
+      });
+    }
+
+    function startNewGame() {
+      const deck = createMultiDeck();
+      
+      turnOrder.forEach(key => {
+        gameState.players[key].hand = sortHand(deck.splice(0, 11));
+        gameState.players[key].foot = deck.splice(0, 11);
+        gameState.players[key].inFoot = false;
+      });
+
+      gameState.stock = deck;
+      gameState.discardPile = [deck.pop()];
+      gameState.team1Melds = [];
+      gameState.team2Melds = [];
+      gameState.turnIndex = 0;
+      gameState.hasDrawn = false;
+      gameState.selectedCardIds = [];
+      gameState.team1Score = 0;
+      gameState.team2Score = 0;
+      gameState.roundInitialReq = getMinimumMeldRequirement(gameState.team1Score);
+      gameState.statusMessage = 'Your turn: Draw 2 cards or play melds.';
+
+      renderUI();
+    }
+
+    function calculateTeamScores() {
+      const calcMelds = (melds) => {
+        let total = 0;
+        melds.forEach(meld => {
+          meld.cards.forEach(c => total += c.points);
+          if (meld.cards.length >= 7) {
+            const hasWild = meld.cards.some(c => c.rank === 'Joker' || c.rank === '2');
+            total += hasWild ? 300 : 500;
+          }
+        });
+        return total;
+      };
+      gameState.team1Score = calcMelds(gameState.team1Melds);
+      gameState.team2Score = calcMelds(gameState.team2Melds);
+    }
+
+    function playerDrawCards() {
+      if (turnOrder[gameState.turnIndex] !== 'you' || gameState.hasDrawn) return;
+      if (gameState.stock.length < 2) {
+        alert('Stock pile is empty!');
+        return;
+      }
+      gameState.players.you.hand.push(gameState.stock.pop(), gameState.stock.pop());
+      sortHand(gameState.players.you.hand);
+      gameState.hasDrawn = true;
+      gameState.statusMessage = 'You drew 2 cards. Select cards to meld or discard 1.';
+      renderUI();
+    }
+
+    function playerDiscardSelected() {
+      if (turnOrder[gameState.turnIndex] !== 'you') return;
+      if (!gameState.hasDrawn) {
+        alert('Draw 2 cards first before discarding.');
+        return;
+      }
+      if (gameState.selectedCardIds.length !== 1) {
+        alert('Select exactly 1 card to discard.');
+        return;
+      }
+
+      const cardId = gameState.selectedCardIds[0];
+      const cardIdx = gameState.players.you.hand.findIndex(c => c.id === cardId);
+      if (cardIdx !== -1) {
+        const discarded = gameState.players.you.hand.splice(cardIdx, 1)[0];
+        gameState.discardPile.push(discarded);
+        gameState.selectedCardIds = [];
+        gameState.hasDrawn = false;
+        checkFootTransition('you');
+        nextTurn();
+      }
+    }
+
+    function validateMeldCards(cards, existingRank = null) {
+      const naturals = cards.filter(c => c.rank !== 'Joker' && c.rank !== '2');
+      const wilds = cards.filter(c => c.rank === 'Joker' || c.rank === '2');
+
+      if (existingRank) {
+        if (naturals.length > 0 && naturals.some(c => c.rank !== existingRank)) {
+          return { valid: false, msg: `Selected natural cards must match the meld rank (${existingRank}s).` };
+        }
+        if (wilds.length + naturals.length === 0) {
+          return { valid: false, msg: 'Select valid cards to add.' };
+        }
+        return { valid: true, rank: existingRank };
+      }
+
+      if (cards.length < 3) {
+        return { valid: false, msg: 'A new meld requires at least 3 cards.' };
+      }
+      if (naturals.length < 2) {
+        return { valid: false, msg: 'A meld must have at least 2 natural cards.' };
+      }
+
+      const uniqueRanks = [...new Set(naturals.map(c => c.rank))];
+      if (uniqueRanks.length > 1) {
+        return { valid: false, msg: 'All natural cards in a meld must be the same rank.' };
+      }
+      if (wilds.length > naturals.length) {
+        return { valid: false, msg: 'Cannot have more wild cards than natural cards in a meld.' };
+      }
+
+      return { valid: true, rank: uniqueRanks[0] };
+    }
+
+    function playerMeldSelected() {
+      if (turnOrder[gameState.turnIndex] !== 'you') return;
+      if (!gameState.hasDrawn) {
+        alert('Draw 2 cards first before melding.');
+        return;
+      }
+
+      const cardsToMeld = gameState.selectedCardIds
+        .map(id => gameState.players.you.hand.find(c => c.id === id))
+        .filter(Boolean);
+
+      const check = validateMeldCards(cardsToMeld);
+      if (!check.valid) {
+        alert(check.msg);
+        return;
+      }
+
+      if (gameState.team1Melds.length === 0) {
+        const meldPoints = cardsToMeld.reduce((sum, c) => sum + c.points, 0);
+        const reqPoints = gameState.roundInitialReq;
+        if (meldPoints < reqPoints) {
+          alert(`Your team's initial meld must equal at least ${reqPoints} points for this round (Selected total: ${meldPoints} pts).`);
+          return;
+        }
+      }
+
+      const existingMeld = gameState.team1Melds.find(m => m.rank === check.rank);
+      if (existingMeld) {
+        existingMeld.cards.push(...cardsToMeld);
+        sortMeldCards(existingMeld.cards);
+      } else {
+        sortMeldCards(cardsToMeld);
+        gameState.team1Melds.push({ rank: check.rank, cards: cardsToMeld });
+      }
+
+      gameState.selectedCardIds.forEach(id => {
+        const idx = gameState.players.you.hand.findIndex(c => c.id === id);
+        if (idx !== -1) gameState.players.you.hand.splice(idx, 1);
+      });
+
+      gameState.selectedCardIds = [];
+      checkFootTransition('you');
+      calculateTeamScores();
+      gameState.statusMessage = 'Successful meld! Add more cards or discard.';
+      renderUI();
+    }
+
+    function addToExistingTeamMeld(meldIndex) {
+      if (turnOrder[gameState.turnIndex] !== 'you' || !gameState.hasDrawn) return;
+      if (gameState.selectedCardIds.length === 0) return;
+
+      const targetMeld = gameState.team1Melds[meldIndex];
+      const cardsToAdd = gameState.selectedCardIds
+        .map(id => gameState.players.you.hand.find(c => c.id === id))
+        .filter(Boolean);
+
+      const check = validateMeldCards(cardsToAdd, targetMeld.rank);
+      if (!check.valid) {
+        alert(check.msg);
+        return;
+      }
+
+      targetMeld.cards.push(...cardsToAdd);
+      sortMeldCards(targetMeld.cards);
+
+      gameState.selectedCardIds.forEach(id => {
+        const idx = gameState.players.you.hand.findIndex(c => c.id === id);
+        if (idx !== -1) gameState.players.you.hand.splice(idx, 1);
+      });
+
+      gameState.selectedCardIds = [];
+      checkFootTransition('you');
+      calculateTeamScores();
+      gameState.statusMessage = `Added cards to your ${targetMeld.rank}s meld.`;
+      renderUI();
+    }
+
+    function sortMeldCards(cards) {
+      cards.sort((a, b) => {
+        let indexA = RANKS_ORDER.indexOf(a.rank);
+        let indexB = RANKS_ORDER.indexOf(b.rank);
+        if (indexA !== indexB) return indexA - indexB;
+        return a.suit.localeCompare(b.suit);
+      });
+    }
+
+    function checkFootTransition(playerKey) {
+      const p = gameState.players[playerKey];
+      if (p.hand.length === 0 && p.foot.length > 0) {
+        p.hand = sortHand([...p.foot]);
+        p.foot = [];
+        p.inFoot = true;
+      }
+    }
+
+    function nextTurn() {
+      gameState.turnIndex = (gameState.turnIndex + 1) % 4;
+      renderUI();
+
+      if (turnOrder[gameState.turnIndex] !== 'you') {
+        setTimeout(aiTurn, 1000);
+      }
+    }
+
+    function aiTurn() {
+      const currentKey = turnOrder[gameState.turnIndex];
+      const pData = gameState.players[currentKey];
+      const teamMelds = pData.team === 1 ? gameState.team1Melds : gameState.team2Melds;
+      const reqPoints = gameState.roundInitialReq;
+
+      gameState.statusMessage = `${pData.name} is drawing cards...`;
+      renderUI();
+
+      setTimeout(() => {
+        if (gameState.stock.length >= 2) {
+          pData.hand.push(gameState.stock.pop(), gameState.stock.pop());
+          sortHand(pData.hand);
+        }
+
+        gameState.statusMessage = `${pData.name} is evaluating melds...`;
+        renderUI();
+
+        setTimeout(() => {
+          const rankGroups = {};
+          pData.hand.forEach(c => {
+            if (c.rank !== 'Joker' && c.rank !== '2') {
+              if (!rankGroups[c.rank]) rankGroups[c.rank] = [];
+              rankGroups[c.rank].push(c);
+            }
+          });
+
+          for (const rank in rankGroups) {
+            if (rankGroups[rank].length >= 3) {
+              const toMeld = rankGroups[rank];
+              const meldPoints = toMeld.reduce((sum, c) => sum + c.points, 0);
+
+              if (teamMelds.length > 0 || meldPoints >= reqPoints) {
+                sortMeldCards(toMeld);
+                const existing = teamMelds.find(m => m.rank === rank);
+                if (existing) {
+                  existing.cards.push(...toMeld);
+                  sortMeldCards(existing.cards);
+                } else {
+                  teamMelds.push({ rank, cards: [...toMeld] });
+                }
+                pData.hand = pData.hand.filter(c => c.rank !== rank);
+                checkFootTransition(currentKey);
+                break;
+              }
+            }
+          }
+
+          if (pData.hand.length > 0) {
+            const randIdx = Math.floor(Math.random() * pData.hand.length);
+            gameState.discardPile.push(pData.hand.splice(randIdx, 1)[0]);
+            checkFootTransition(currentKey);
+          }
+
+          calculateTeamScores();
+          gameState.statusMessage = `${pData.name} completed their turn.`;
+          renderUI();
+
+          setTimeout(() => {
+            gameState.turnIndex = (gameState.turnIndex + 1) % 4;
+            if (turnOrder[gameState.turnIndex] === 'you') {
+              gameState.statusMessage = 'Your turn: Draw 2 cards or play melds.';
+              renderUI();
+            } else {
+              setTimeout(aiTurn, 800);
+            }
+          }, 700);
+        }, 700);
+      }, 700);
+    }
+
+    function renderUI() {
+      document.getElementById('team1-score').innerText = `${gameState.team1Score} pts`;
+      document.getElementById('team2-score').innerText = `${gameState.team2Score} pts`;
+      document.getElementById('stock-count').innerText = gameState.stock.length;
+
+      const activeKey = turnOrder[gameState.turnIndex];
+      const turnLabels = {
+        you: 'Your Turn',
+        opp1: `${gameState.players.opp1.name}'s Turn`,
+        partner: `${gameState.players.partner.name}'s Turn`,
+        opp2: `${gameState.players.opp2.name}'s Turn`
+      };
+      document.getElementById('turn-indicator').innerText = turnLabels[activeKey];
+      document.getElementById('action-banner').innerText = gameState.statusMessage;
+
+      const midDrawBtn = document.getElementById('mid-draw-btn');
+      const isPlayerTurnToDraw = (activeKey === 'you' && !gameState.hasDrawn);
+      const isPlayerTurnAfterDraw = (activeKey === 'you' && gameState.hasDrawn);
+
+      midDrawBtn.parentElement.style.display = isPlayerTurnToDraw ? 'flex' : 'none';
+
+      const actionButtonsContainer = document.getElementById('action-buttons-container');
+      if (isPlayerTurnAfterDraw) {
+        actionButtonsContainer.classList.remove('hidden');
+        actionButtonsContainer.classList.add('flex');
+      } else {
+        actionButtonsContainer.classList.add('hidden');
+        actionButtonsContainer.classList.remove('flex');
+      }
+
+      const selCount = gameState.selectedCardIds.length;
+      const selCounter = document.getElementById('selected-counter');
+      const meldBtn = document.getElementById('meld-btn');
+      const discardBtn = document.getElementById('discard-btn');
+
+      if (selCount > 0) {
+        selCounter.classList.remove('hidden');
+        selCounter.innerText = `${selCount} Selected`;
+      } else {
+        selCounter.classList.add('hidden');
+      }
+
+      meldBtn.disabled = !(isPlayerTurnAfterDraw && selCount >= 3);
+      discardBtn.disabled = !(isPlayerTurnAfterDraw && selCount === 1);
+
+      document.getElementById('req-meld-badge').innerText = `Initial Req: ${gameState.roundInitialReq} pts`;
+
+      document.getElementById('partner-name').innerText = gameState.players.partner.name;
+      document.getElementById('opp1-name').innerText = gameState.players.opp1.name;
+      document.getElementById('opp2-name').innerText = gameState.players.opp2.name;
+
+      const discardContainer = document.getElementById('discard-pile');
+      discardContainer.innerHTML = '';
+      if (gameState.discardPile.length > 0) {
+        discardContainer.appendChild(createCardElement(gameState.discardPile[gameState.discardPile.length - 1], true));
+      }
+
+      renderFannedOpponent('partner', 'partner-hand', 'partner-counts', 'horizontal');
+      renderFannedOpponent('opp1', 'opp1-hand', 'opp1-counts', 'vertical');
+      renderFannedOpponent('opp2', 'opp2-hand', 'opp2-counts', 'vertical');
+      renderPlayerFannedHand();
+
+      const you = gameState.players.you;
+      document.getElementById('player-status-label').innerText = you.inFoot
+        ? `Playing Foot (${you.hand.length} cards)`
+        : `Your Hand (${you.hand.length})`;
+
+      renderMeldsStack('team1-melds', gameState.team1Melds, true);
+      renderMeldsStack('team2-melds', gameState.team2Melds, false);
+    }
+
+    function renderPlayerFannedHand() {
+      const container = document.getElementById('player-cards-container');
+      container.innerHTML = '';
+      const hand = gameState.players.you.hand;
+      const total = hand.length;
+      if (total === 0) return;
+
+      const isMobile = window.innerWidth < 640;
+      const maxArcAngle = Math.min(26, total * 2.0);
+      const stepAngle = total > 1 ? maxArcAngle / (total - 1) : 0;
+      const startAngle = -maxArcAngle / 2;
+
+      const maxSpreadPx = Math.min(window.innerWidth - 60, total * (isMobile ? 32 : 45));
+      const stepX = total > 1 ? maxSpreadPx / (total - 1) : 0;
+      const startX = -maxSpreadPx / 2;
+
+      hand.forEach((card, idx) => {
+        const cardEl = createCardElement(card, true);
+        cardEl.classList.add('fan-card');
+
+        const angle = startAngle + idx * stepAngle;
+        const offsetX = startX + idx * stepX;
+        const archY = Math.abs(angle) * 0.3;
+        const isSelected = gameState.selectedCardIds.includes(card.id);
+
+        if (isSelected) {
+          cardEl.classList.add('selected');
+        }
+
+        const liftY = isSelected ? -20 : 0;
+        cardEl.style.transform = `translateX(${offsetX}px) translateY(${archY + liftY}px) rotate(${angle}deg)`;
+        cardEl.style.zIndex = idx + 10;
+
+        cardEl.addEventListener('click', () => {
+          const sIdx = gameState.selectedCardIds.indexOf(card.id);
+          if (sIdx > -1) {
+            gameState.selectedCardIds.splice(sIdx, 1);
+          } else {
+            gameState.selectedCardIds.push(card.id);
+          }
+          renderUI();
+        });
+
+        container.appendChild(cardEl);
+      });
+    }
+
+    function renderFannedOpponent(playerKey, containerId, countId, orientation) {
+      const p = gameState.players[playerKey];
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      const count = p.hand.length;
+      if (orientation === 'horizontal') {
+        document.getElementById(countId).innerText = `Hand: ${count} • Foot: ${p.foot.length}`;
+        const spread = Math.min(190, count * 15);
+        const step = count > 1 ? spread / (count - 1) : 0;
+        const maxAngle = Math.min(18, count * 1.5);
+        const angleStep = count > 1 ? maxAngle / (count - 1) : 0;
+
+        for (let i = 0; i < count; i++) {
+          const back = document.createElement('div');
+          back.className = 'solitaire-card face-down';
+          back.style.position = 'absolute';
+          back.style.width = '48px';
+          back.style.height = '68px';
+          const x = -spread / 2 + i * step;
+          const rot = -maxAngle / 2 + i * angleStep;
+          back.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
+          back.style.zIndex = i + 1;
+          container.appendChild(back);
+        }
+      } else {
+        document.getElementById(countId).innerText = `H:${count} F:${p.foot.length}`;
+        const spread = Math.min(140, count * 12);
+        const step = count > 1 ? spread / (count - 1) : 0;
+        const maxAngle = Math.min(16, count * 1.3);
+        const angleStep = count > 1 ? maxAngle / (count - 1) : 0;
+        const baseRot = playerKey === 'opp1' ? 90 : -90;
+
+        for (let i = 0; i < count; i++) {
+          const back = document.createElement('div');
+          back.className = 'solitaire-card face-down';
+          back.style.position = 'absolute';
+          back.style.width = '44px';
+          back.style.height = '62px';
+          const y = -spread / 2 + i * step;
+          const fanRot = -maxAngle / 2 + i * angleStep;
+          back.style.transform = `translateY(${y}px) rotate(${baseRot + fanRot}deg)`;
+          back.style.zIndex = i + 1;
+          container.appendChild(back);
+        }
+      }
+    }
+
+    function renderMeldsStack(containerId, meldsArray, isYourTeam) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      if (meldsArray.length === 0) {
+        container.innerHTML = `<span class="text-[11px] text-white/40 italic">${isYourTeam ? 'No melds laid down yet' : 'No opponent melds yet'}</span>`;
+        return;
+      }
+
+      meldsArray.forEach((meld, mIdx) => {
+        const isBook = meld.cards.length >= 7;
+        const hasWild = meld.cards.some(c => c.rank === 'Joker' || c.rank === '2');
+        const badgeColor = isBook ? (hasWild ? 'border-slate-300 bg-slate-800/90' : 'border-red-400 bg-red-950/90') : 'border-white/20 bg-black/60';
+
+        const group = document.createElement('div');
+        group.className = `meld-column border ${badgeColor} shadow-lg ${isYourTeam ? 'cursor-pointer hover:border-amber-400 transition-colors' : ''}`;
+        if (isYourTeam) {
+          group.title = `Click to add selected cards to this ${meld.rank}s meld`;
+          group.addEventListener('click', () => addToExistingTeamMeld(mIdx));
+        }
+
+        const totalCards = meld.cards.length;
+        const scaleFactor = totalCards > 5 ? Math.max(0.42, 0.65 - (totalCards - 5) * 0.025) : 0.65;
+        const negativeOverlap = Math.round(95 * scaleFactor * 0.72);
+
+        meld.cards.forEach((card, cIdx) => {
+          const cardEl = createCardElement(card, true);
+          cardEl.style.width = `calc(var(--card-width) * ${scaleFactor})`;
+          cardEl.style.height = `calc(var(--card-height) * ${scaleFactor})`;
+          cardEl.style.fontSize = totalCards > 8 ? '7px' : '9px';
+          if (cIdx > 0) {
+            cardEl.style.marginTop = `-${negativeOverlap}px`;
+          }
+          cardEl.style.zIndex = cIdx + 1;
+          group.appendChild(cardEl);
+        });
+
+        const countBadge = document.createElement('span');
+        countBadge.className = 'mt-1 text-[8px] font-extrabold px-1.5 py-0.2 rounded bg-black/90 text-amber-300 shadow';
+        countBadge.innerText = `${totalCards} cards`;
+        group.appendChild(countBadge);
+
+        container.appendChild(group);
+      });
+    }
+
+    function createCardElement(card, faceUp) {
+      const el = document.createElement('div');
+      if (faceUp) {
+        el.className = `solitaire-card face-up ${card.color} flex flex-col justify-between p-1 font-black`;
+        el.innerHTML = `
+          <div class="flex justify-between leading-none pointer-events-none text-xs sm:text-sm"><span>${card.rank}</span><span>${card.suit}</span></div>
+          <div class="text-center text-base sm:text-xl pointer-events-none">${card.suit}</div>
+          <div class="flex justify-between leading-none transform rotate-180 pointer-events-none text-xs sm:text-sm"><span>${card.rank}</span><span>${card.suit}</span></div>
+        `;
+      } else {
+        el.className = 'solitaire-card face-down';
+      }
+      return el;
+    }
+  </script>
+</body>
+</html>

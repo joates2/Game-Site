@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chess - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chess.js for robust rules and AI handling -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Custom Chessboard Styling */
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-rows: repeat(8, minmax(0, 1fr));
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 4px solid rgba(250, 204, 21, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    }
+
+    .square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      transition: background-color 0.15s ease;
+    }
+
+    .square.light {
+      background-color: #e2d9c5;
+      color: #1e293b;
+    }
+
+    .square.dark {
+      background-color: #3f6244;
+      color: #1e293b;
+    }
+
+    .square.selected {
+      background-color: rgba(250, 204, 21, 0.6) !important;
+    }
+
+    .square.highlight::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: rgba(0, 0, 0, 0.25);
+      border-radius: 50%;
+    }
+
+    .square.highlight-capture::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 4px solid rgba(239, 68, 68, 0.7);
+      border-radius: 50%;
+    }
+
+    .piece {
+      transition: transform 0.15s ease;
+    }
+    .piece:hover {
+      transform: scale(1.08);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-4 py-4 sm:py-6">
+    
+    <!-- TOP NAVBAR (Home Page Banner - Clickable to Home) -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group cursor-pointer">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Classic Game Hub</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- SECONDARY GAME SUB-BANNER -->
+    <div class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-white/15">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-base">
+          <i class="fa-solid fa-chess-king"></i>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Chess</h2>
+          <span id="sub-status-text" class="text-xs text-emerald-200/80 font-medium">White's Turn</span>
+        </div>
+      </div>
+      
+      <!-- Sub-banner Action Buttons (Hint, Rules, New Game) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="hint-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-lightbulb text-amber-400"></i>
+          <span>Hint</span>
+        </button>
+        <button id="rules-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-book"></i>
+          <span>Rules</span>
+        </button>
+        <button id="new-game-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-plus"></i>
+          <span>New Game</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME CONTAINER -->
+    <main class="flex-1 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 pb-12">
+      
+      <!-- BOARD AREA -->
+      <div class="w-full max-w-[500px] flex flex-col gap-3">
+        <!-- The Chessboard -->
+        <div id="board" class="board-grid relative"></div>
+      </div>
+
+      <!-- SIDEBAR CONTROLS & INFO -->
+      <div class="w-full max-w-[320px] flex flex-col gap-5">
+        
+        <!-- Game Settings & Control Panel -->
+        <div class="glass-panel rounded-2xl p-5 border border-white/15 flex flex-col gap-4 shadow-xl">
+          <h3 class="text-base font-bold text-amber-300 uppercase tracking-wide flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-sliders text-amber-400"></i>
+            <span>Game Controls</span>
+          </h3>
+          
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-emerald-200/80">Opponent</label>
+            <select id="game-mode" class="glass-panel rounded-xl px-3 py-2 text-xs sm:text-sm text-white border border-white/15 focus:outline-none focus:border-amber-400 bg-slate-900">
+              <option value="ai" selected>Play vs Computer (Easy)</option>
+              <option value="local">Two Player (Local)</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-emerald-200/80">Player Color</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="color-white" class="py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all shadow cursor-pointer">White</button>
+              <button id="color-black" class="py-2 rounded-xl text-xs font-bold bg-white/10 text-white border border-white/15 transition-all cursor-pointer">Black</button>
+            </div>
+          </div>
+
+          <button id="undo-btn" class="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 rounded-xl text-xs transition-all border border-white/15 flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-undo"></i>
+            <span>Undo Move</span>
+          </button>
+        </div>
+
+        <!-- Move History Panel -->
+        <div class="glass-panel rounded-2xl p-5 border border-white/15 flex flex-col gap-3 shadow-xl flex-1 min-h-[180px]">
+          <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wide flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-list-ul text-amber-400"></i>
+            <span>Move History</span>
+          </h3>
+          <div id="move-history" class="flex-1 max-h-[160px] overflow-y-auto flex flex-col gap-1 text-xs text-emerald-100/80 font-mono pr-1">
+            <span class="text-emerald-200/40 italic">No moves played yet...</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-white/20 shadow-2xl flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-white/15 pb-3">
+        <h3 class="text-lg font-bold text-amber-300 uppercase" style="font-family: 'Cinzel', serif;">Chess Rules</h3>
+        <button id="close-rules" class="text-emerald-200 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong>Objective:</strong> Trap your opponent's King in checkmate so that it cannot escape capture.</p>
+        <p><strong>Piece Movements:</strong>
+          <br>• <strong>Pawn:</strong> Moves forward one square (two on first move), captures diagonally.
+          <br>• <strong>Knight:</strong> Moves in an L-shape (2 squares one way, 1 square perpendicular) and can jump over pieces.
+          <br>• <strong>Bishop:</strong> Moves diagonally any number of open squares.
+          <br>• <strong>Rook:</strong> Moves horizontally or vertically any number of open squares.
+          <br>• <strong>Queen:</strong> Combines the power of the Rook and Bishop.
+          <br>• <strong>King:</strong> Moves one square in any direction.
+        </p>
+      </div>
+      <button id="close-rules-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer">Got It!</button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <!-- GAME LOGIC SCRIPT -->
+  <script>
+    const chess = new Chess();
+    let selectedSquare = null;
+    let playerColor = 'w';
+    let gameMode = 'ai';
+
+    const pieceSymbols = {
+      p: '♙', r: '♖', n: '♘', b: '♗', q: '♕', k: '♔',
+      P: '♟', R: '♜', N: '♞', B: '♝', Q: '♛', K: '♚'
+    };
+
+    const boardEl = document.getElementById('board');
+    const subStatusText = document.getElementById('sub-status-text');
+    const moveHistoryEl = document.getElementById('move-history');
+
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      const boardState = chess.board();
+      const isFlipped = playerColor === 'b' && gameMode === 'ai';
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const row = isFlipped ? 7 - r : r;
+          const col = isFlipped ? 7 - c : c;
+          const squareId = String.fromCharCode(97 + col) + (8 - row);
+          
+          const squareDiv = document.createElement('div');
+          squareDiv.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+          squareDiv.dataset.square = squareId;
+
+          const piece = boardState[row][col];
+          if (piece) {
+            const pieceSpan = document.createElement('span');
+            pieceSpan.className = 'piece';
+            pieceSpan.textContent = piece.color === 'w' ? pieceSymbols[piece.type.toUpperCase()] : pieceSymbols[piece.type];
+            pieceSpan.style.color = piece.color === 'w' ? '#ffffff' : '#0f172a';
+            squareDiv.appendChild(pieceSpan);
+          }
+
+          if (selectedSquare === squareId) {
+            squareDiv.classList.add('selected');
+          }
+
+          squareDiv.addEventListener('click', () => handleSquareClick(squareId));
+          boardEl.appendChild(squareDiv);
+        }
+      }
+      updateStatus();
+    }
+
+    function handleSquareClick(squareId) {
+      if (gameMode === 'ai' && chess.turn() !== playerColor) return;
+
+      if (!selectedSquare) {
+        const piece = chess.get(squareId);
+        if (piece && piece.color === chess.turn()) {
+          selectedSquare = squareId;
+          renderBoard();
+          highlightLegalMoves(squareId);
+        }
+      } else {
+        const move = chess.move({
+          from: selectedSquare,
+          to: squareId,
+          promotion: 'q'
+        });
+
+        selectedSquare = null;
+        if (move) {
+          renderBoard();
+          updateMoveHistory();
+          if (!chess.game_over() && gameMode === 'ai' && chess.turn() !== playerColor) {
+            setTimeout(makeAIMove, 300);
+          }
+        } else {
+          const piece = chess.get(squareId);
+          if (piece && piece.color === chess.turn()) {
+            selectedSquare = squareId;
+            renderBoard();
+            highlightLegalMoves(squareId);
+          } else {
+            renderBoard();
+          }
+        }
+      }
+    }
+
+    function highlightLegalMoves(squareId) {
+      const legalMoves = chess.moves({ square: squareId, verbose: true });
+      legalMoves.forEach(m => {
+        const sqEl = boardEl.querySelector(`[data-square="${m.to}"]`);
+        if (sqEl) {
+          sqEl.classList.add(m.captured ? 'highlight-capture' : 'highlight');
+        }
+      });
+    }
+
+    function makeAIMove() {
+      const moves = chess.moves({ verbose: true });
+      if (moves.length === 0) return;
+      
+      const captures = moves.filter(m => m.captured);
+      const chosenMove = captures.length > 0 && Math.random() > 0.3 
+        ? captures[Math.floor(Math.random() * captures.length)]
+        : moves[Math.floor(Math.random() * moves.length)];
+
+      chess.move(chosenMove);
+      renderBoard();
+      updateMoveHistory();
+    }
+
+    function updateStatus() {
+      if (chess.in_checkmate()) {
+        subStatusText.textContent = `Checkmate! ${chess.turn() === 'w' ? 'Black' : 'White'} wins!`;
+      } else if (chess.in_draw()) {
+        subStatusText.textContent = `Game Drawn!`;
+      } else if (chess.in_check()) {
+        subStatusText.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} is in Check!`;
+      } else {
+        subStatusText.textContent = `${chess.turn() === 'w' ? "White's" : "Black's"} Turn`;
+      }
+    }
+
+    function updateMoveHistory() {
+      const history = chess.history({ verbose: true });
+      if (history.length === 0) {
+        moveHistoryEl.innerHTML = '<span class="text-emerald-200/40 italic">No moves played yet...</span>';
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < history.length; i += 2) {
+        const moveNum = Math.floor(i / 2) + 1;
+        const whiteMove = history[i] ? history[i].san : '';
+        const blackMove = history[i + 1] ? history[i + 1].san : '';
+        html += `<div class="flex justify-between py-0.5 border-b border-white/5"><span class="text-amber-400/80">${moveNum}.</span> <span>${whiteMove}</span> <span>${blackMove}</span></div>`;
+      }
+      moveHistoryEl.innerHTML = html;
+      moveHistoryEl.scrollTop = moveHistoryEl.scrollHeight;
+    }
+
+    // Button event listeners
+    document.getElementById('new-game-btn').addEventListener('click', () => {
+      chess.reset();
+      selectedSquare = null;
+      renderBoard();
+      updateMoveHistory();
+      if (gameMode === 'ai' && playerColor === 'b') {
+        setTimeout(makeAIMove, 300);
+      }
+    });
+
+    document.getElementById('undo-btn').addEventListener('click', () => {
+      chess.undo();
+      if (gameMode === 'ai') chess.undo();
+      selectedSquare = null;
+      renderBoard();
+      updateMoveHistory();
+    });
+
+    document.getElementById('hint-btn').addEventListener('click', () => {
+      const moves = chess.moves({ verbose: true });
+      if (moves.length === 0) return;
+      const hint = moves[Math.floor(Math.random() * moves.length)];
+      const sqEl = boardEl.querySelector(`[data-square="${hint.from}"]`);
+      if (sqEl) {
+        sqEl.classList.add('selected');
+        setTimeout(() => renderBoard(), 1500);
+      }
+    });
+
+    // Rules Modal Controls
+    const rulesModal = document.getElementById('rules-modal');
+    document.getElementById('rules-btn').addEventListener('click', () => rulesModal.classList.remove('hidden'));
+    document.getElementById('close-rules').addEventListener('click', () => rulesModal.classList.add('hidden'));
+    document.getElementById('close-rules-btn').addEventListener('click', () => rulesModal.classList.add('hidden'));
+
+    document.getElementById('game-mode').addEventListener('change', (e) => {
+      gameMode = e.target.value;
+      chess.reset();
+      selectedSquare = null;
+      renderBoard();
+      updateMoveHistory();
+    });
+
+    document.getElementById('color-white').addEventListener('click', () => {
+      playerColor = 'w';
+      document.getElementById('color-white').className = 'py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all shadow cursor-pointer';
+      document.getElementById('color-black').className = 'py-2 rounded-xl text-xs font-bold bg-white/10 text-white border border-white/15 transition-all cursor-pointer';
+      chess.reset();
+      renderBoard();
+      updateMoveHistory();
+    });
+
+    document.getElementById('color-black').addEventListener('click', () => {
+      playerColor = 'b';
+      document.getElementById('color-black').className = 'py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all shadow cursor-pointer';
+      document.getElementById('color-white').className = 'py-2 rounded-xl text-xs font-bold bg-white/10 text-white border border-white/15 transition-all cursor-pointer';
+      chess.reset();
+      renderBoard();
+      updateMoveHistory();
+      setTimeout(makeAIMove, 300);
+    });
+
+    renderBoard();
+  </script>
+</body>
+</html>
+\

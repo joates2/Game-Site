@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rules &amp; Strategy - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+      transition: background 0.3s ease;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Custom smooth scrolling offset for anchor links */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 100px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-4 py-4 sm:py-6">
+    
+    <!-- TOP NAVBAR -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-6 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity cursor-pointer">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Rules &amp; Strategy Guide</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links + Settings Gear Link -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-amber-500 text-slate-950 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <a href="settings.html" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </a>
+      </div>
+    </nav>
+
+    <!-- PAGE HEADER & SEARCH -->
+    <header class="glass-panel rounded-3xl p-6 sm:p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-amber-400/20">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-black text-amber-300 tracking-wide uppercase" style="font-family: 'Cinzel', serif;">Master the Games</h2>
+        <p class="text-xs sm:text-sm text-emerald-200/80 mt-1 max-w-xl">Explore comprehensive rulebooks, foundational mechanics, and pro strategies for every classic game offered on our platform.</p>
+      </div>
+      <div class="w-full md:w-80 relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/60 text-sm"></i>
+        <input type="text" id="gameSearchInput" placeholder="Search rules for any game..." class="w-full bg-slate-950/50 border border-white/20 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-emerald-200/50 focus:outline-none focus:border-amber-400 transition-colors">
+      </div>
+    </header>
+
+    <!-- CONTENT BODY: SIDEBAR NAV + RULES SECTIONS -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start pb-12">
+      
+      <!-- STICKY SIDEBAR INDEX -->
+      <aside class="lg:col-span-1 glass-panel rounded-3xl p-4 sm:p-5 sticky top-6 hidden lg:block max-h-[calc(100vh-120px)] overflow-y-auto">
+        <h3 class="text-xs font-black text-amber-400 uppercase tracking-widest px-3 mb-3" style="font-family: 'Cinzel', serif;">Game Index</h3>
+        <nav class="flex flex-col gap-1 text-xs font-medium text-emerald-100/80" id="sidebarNav">
+          <a href="#klondike" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Klondike Solitaire</a>
+          <a href="#freecell" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">FreeCell</a>
+          <a href="#spider" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Spider Solitaire</a>
+          <a href="#chess" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Chess</a>
+          <a href="#checkers" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Checkers</a>
+          <a href="#mexicantrain" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Mexican Train Dominoes</a>
+          <a href="#dominoes" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Dominoes</a>
+          <a href="#cribbage" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Cribbage</a>
+          <a href="#crazyeights" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Crazy Eights</a>
+          <a href="#gofish" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Go Fish</a>
+          <a href="#oldmaid" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Old Maid</a>
+          <a href="#rummy500" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Rummy 500</a>
+          <a href="#handandfoot" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Hand and Foot</a>
+          <a href="#canasta" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Canasta</a>
+          <a href="#ginrummy" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Gin Rummy</a>
+          <a href="#rummy" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Rummy</a>
+          <a href="#hearts" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Hearts</a>
+          <a href="#spades" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Spades</a>
+          <a href="#euchre" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Euchre</a>
+          <a href="#pinochle" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Pinochle</a>
+          <a href="#bridge" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Bridge</a>
+          <a href="#whist" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Whist</a>
+          <a href="#sheepshead" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Sheepshead</a>
+          <a href="#sergeantmajor" class="sidebar-link px-3 py-2 rounded-xl hover:bg-white/10 hover:text-amber-300 transition-colors">Sergeant Major</a>
+        </nav>
+      </aside>
+
+      <!-- MAIN RULES & STRATEGY CARDS -->
+      <main class="lg:col-span-3 flex flex-col gap-6" id="rulesContainer">
+        
+        <!-- 1. KLONDIKE SOLITAIRE -->
+        <article id="klondike" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Klondike Solitaire</h3>
+            <a href="klondike.html" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">The goal is to move all 52 cards to the four foundation piles, built up by suit from Ace to King. Tableau columns are built down in alternating colors (red/black). Unlocked face-down cards are flipped face up.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Expose face-down cards as quickly as possible. Avoid emptying a tableau column unless you have a King ready to fill it, as Kings are required to start new column piles.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. FREECELL -->
+        <article id="freecell" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">FreeCell</h3>
+            <a href="freecell.html" class="text-xs bg-blue-500 hover:bg-blue-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-blue-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">All 52 cards are dealt face-up into 8 tableau columns. Use four temporary open cells to hold single cards out of the way. Build tableaus down in alternating colors and foundations up by suit from Ace to King.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-blue-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Keep as many free cells empty as possible; every occupied cell halves the number of cards you can dynamically move in sequence. Clear Aces and low cards to foundations early.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. SPIDER SOLITAIRE -->
+        <article id="spider" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Spider Solitaire</h3>
+            <a href="spider.html" class="text-xs bg-purple-500 hover:bg-purple-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-purple-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Played with two decks (104 cards). Build descending sequences from King down to Ace within the 10 columns. When a complete suited run is formed, it automatically flies off to the foundation.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-purple-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Try to build sequences within the same suit whenever possible. Mixing suits locks cards in place until lower cards are cleared away.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. CHESS -->
+        <article id="chess" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Chess</h3>
+            <a href="chess.html" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Two players battle across a 64-square board with unique piece movements. The objective is checkmate—trapping the opponent's King so it cannot escape capture.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Control the center squares early with pawns and minor pieces (knights and bishops). Castle early to keep your King safe and activate your rooks.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 5. CHECKERS -->
+        <article id="checkers" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Checkers</h3>
+            <a href="checkers.html" class="text-xs bg-red-500 hover:bg-red-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-red-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Pieces move diagonally forward on dark squares. Jump over opponent pieces to capture them. Reach the furthest row to crown your piece into a King, which can move and jump backwards.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-red-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Keep your back row intact as long as possible to block enemy pieces from becoming Kings. Control the center diagonals and force your opponent into unfavorable trades.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 6. MEXICAN TRAIN DOMINOES -->
+        <article id="mexicantrain" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Mexican Train Dominoes</h3>
+            <a href="mexicantrain.html" class="text-xs bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-orange-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Players build domino trains outward from a central engine hub. If you cannot play on your turn, you must draw; if you still cannot play, your personal train becomes open for others. Lowest total pips after multiple rounds wins.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-orange-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Try to dump high-value double tiles early so you aren't stuck holding heavy points if someone else goes out quickly. Pay attention to what numbers your opponents are missing.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 7. DOMINOES -->
+        <article id="dominoes" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Dominoes</h3>
+            <a href="dominoes.html" class="text-xs bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Match open pip ends on the layout. Be the first player to empty your hand of tiles or score the most points by hitting multiples of 5 on open ends.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Keep a balanced variety of suits in your hand. If you hold multiple tiles of the same number, try to force the board to open on that number to trap your opponents.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 8. CRIBBAGE -->
+        <article id="cribbage" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Cribbage</h3>
+            <a href="cribbage.html" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Peg your way across the board to 121 points. Score points during play (summing to 15, pairs, runs) and during hand counting, including a special dealer's box called the crib.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Be mindful of what you throw into the crib. If you are the dealer, load it with scoring potential (5s, matching pairs); if opponent is dealer, toss "spacer" cards like 4s and 7s or low connectors.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 9. CRAZY EIGHTS -->
+        <article id="crazyeights" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Crazy Eights</h3>
+            <a href="crazyeights.html" class="text-xs bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-rose-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Match the rank or suit of the top discard pile card. Eights are wild and can be played on any turn to call a new active suit. First player to empty their hand wins.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-rose-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Hold onto your Eights until late in the game when you get stuck or need to escape a dangerous suit trap set by opponents.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 10. GO FISH -->
+        <article id="gofish" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Go Fish</h3>
+            <a href="gofish.html" class="text-xs bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-cyan-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Ask opponents for specific card ranks to complete sets of four (books). If they don't have it, they tell you to "Go Fish" from the pond. Most books wins.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-cyan-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Keep track of what cards your opponents request; if someone asks you for a rank, remember that they likely hold matching cards in their hand.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 11. OLD MAID -->
+        <article id="oldmaid" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Old Maid</h3>
+            <a href="oldmaid.html" class="text-xs bg-pink-500 hover:bg-pink-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-pink-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Discard all pairs from your starting hand. Take turns drawing one card blindly from the player to your left. Avoid getting stuck holding the unmatchable Queen (the Old Maid).</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-pink-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">If you hold the Queen, try to position it cleanly in your fan so opponents accidentally pick it. Pay attention to card positions when an opponent draws from you.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 12. RUMMY 500 -->
+        <article id="rummy500" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Rummy 500</h3>
+            <a href="rummy500.html" class="text-xs bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-sky-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Form melds (sets of 3-4 of a kind, or suited runs of 3+). Score points for cards laid down on the table. First player to reach 500 points wins.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-sky-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">You can pick up multiple cards from the discard pile as long as you immediately meld the bottom card. This is high risk/reward for staging massive scoring turns.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 13. HAND AND FOOT -->
+        <article id="handandfoot" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Hand and Foot</h3>
+            <a href="handandfoot.html" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Multi-deck rummy variant where each player gets a "Hand" and a "Foot" stack of cards. Play out your Hand, then pick up your Foot to fulfill book requirements before going out.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Coordinate book building with your partner. Prioritize forming clean red canastas (no wild cards) as they award massive bonus points at round end.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 14. CANASTA -->
+        <article id="canasta" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Canasta</h3>
+            <a href="canasta.html" class="text-xs bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-orange-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Build "Canastas"—melds of 7 or more cards of the same rank. You must complete at least one Canasta before you are allowed to go out and end the round.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-orange-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Freezing the discard pile by discarding a wild card prevents opponents from easily sweeping up massive stacks of cards.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 15. GIN RUMMY -->
+        <article id="ginrummy" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Gin Rummy</h3>
+            <a href="ginrummy.html" class="text-xs bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Form your cards into sets and runs. Reduce your unmatched "deadwood" card points below 10 to knock, or eliminate deadwood entirely for a "Gin" bonus.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Hold onto middle cards (7s, 8s) early on as they can connect in runs in multiple directions. Watch discard patterns to deduce what your opponent is holding.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 16. RUMMY -->
+        <article id="rummy" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Rummy</h3>
+            <a href="rummy.html" class="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-emerald-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Draw and discard cards on each turn to build sets of 3-4 matching ranks or consecutive suited runs. Empty your hand or lay down valid melds to win.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-emerald-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Don't hold onto high-value face cards too long if they aren't forming a meld, as they incur heavy point penalties if someone else goes out first.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 17. HEARTS -->
+        <article id="hearts" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Hearts</h3>
+            <a href="hearts.html" class="text-xs bg-red-500 hover:bg-red-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-red-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Avoid taking tricks containing penalty Hearts (1 point each) and the Queen of Spades (13 points). Lowest score wins—unless you "Shoot the Moon" by capturing all scoring cards.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-red-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Unload high spades early or hold the Ace/King of Spades to protect yourself from being forced to take the Queen of Spades.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 18. SPADES -->
+        <article id="spades" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Spades</h3>
+            <a href="spades.html" class="text-xs bg-slate-500 hover:bg-slate-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Bid how many tricks you and your partner will win. Spades are permanent trump. Fulfill your combined bid while avoiding accumulated overtrick "sandbags."</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Count your "sure tricks" (high cards in non-trump suits and high spades) before locking in your bid. Avoid taking unnecessary extra tricks once your team bid is met.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 19. EUCHRE -->
+        <article id="euchre" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Euchre</h3>
+            <a href="euchre.html" class="text-xs bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-indigo-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Played with a compact 24-card deck (9 through Ace). Partnership trick-taking where the Jack of the trump suit (Right Bower) and the other Jack of the same color (Left Bower) are the highest trumps.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-indigo-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">If you order up your partner or call trump, make sure you hold at least three winning tricks or a Bower-Ace combo to secure your maker quota.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 20. PINOCHLE -->
+        <article id="pinochle" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Pinochle</h3>
+            <a href="pinochle.html" class="text-xs bg-violet-500 hover:bg-violet-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-violet-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Uses a 48-card specialized double deck (9 down to Ace in 2 copies per suit). Game consists of a meld-scoring phase followed by high-intensity trick-taking.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-violet-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Memorize standard meld combinations (like the Queen of Spades + Jack of Diamonds for a Pinochle). Bid aggressively if your hand holds multiple marriages or runs.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 21. BRIDGE -->
+        <article id="bridge" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Bridge</h3>
+            <a href="bridge.html" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">The premier 4-player partnership game. Involves an auction bidding phase to determine contract level and trump suit, followed by declarer play where partner's hand is laid face up as dummy.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Count high card points (HCP) accurately during bidding. During play, establish long suits in dummy and preserve control cards (like Aces) to cut enemy momentum.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 22. WHIST -->
+        <article id="whist" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Whist</h3>
+            <a href="whist.html" class="text-xs bg-lime-500 hover:bg-lime-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-lime-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Pure trick-taking without bidding. Every trick won above six tricks scores 1 point for your partnership team toward the winning match target.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-lime-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Pay strict attention to lead cards. Signal your partner by leading high cards from strong sequences or low cards to encourage partner leads.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 23. SHEEPSHEAD -->
+        <article id="sheepshead" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Sheepshead</h3>
+            <a href="sheepshead.html" class="text-xs bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-yellow-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Classic 32-card point-trick game. Queens, Jacks, and all Diamonds are permanent trumps. Collect card points (Aces = 11, 10s = 10, Kings = 4, etc.) to exceed 61 points.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-yellow-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">If you pick the blind, discard deadwood points safely. As a defender, trap the picker by leaking low cards and withholding your high trump power until crucial tricks.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 24. SERGEANT MAJOR -->
+        <article id="sergeantmajor" class="game-rule-card glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Sergeant Major</h3>
+            <a href="sergeantmajor.html" class="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">Play Now</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div class="space-y-2">
+              <h4 class="font-bold text-emerald-300 flex items-center gap-2"><i class="fa-solid fa-book"></i> Rules &amp; Objective</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Three-player trick-taking game (3-5-8 format). Players have individual quotas of tricks to capture (dealer takes 3, second takes 5, third takes 8). Surplus cards are swapped between players.</p>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-bold text-emerald-300 flex items-center gap-2"><i class="fa-solid fa-chess-knight"></i> Basic Strategy</h4>
+              <p class="text-emerald-100/80 leading-relaxed">Evaluate your hand carefully during card swaps. Pass low or useless cards to opponents while keeping high trumps to secure your exact individual quota.</p>
+            </div>
+          </div>
+        </article>
+
+      </main>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- SCRIPT FOR SEARCH & SHARED SETTINGS -->
+  <script>
+    const DEFAULT_SETTINGS = { sound: true, felt: 'emerald', deck: 'red', cardFace: 'standard', animSpeed: 'normal' };
+    const FELT_THEMES = {
+      emerald: { light: '#047857', mid: '#064e3b', dark: '#052e16' },
+      royal:   { light: '#1d4ed8', mid: '#1e3a8a', dark: '#0f172a' },
+      crimson: { light: '#9f1239', mid: '#881337', dark: '#4c0519' },
+      slate:   { light: '#334155', mid: '#1e293b', dark: '#090d16' }
+    };
+
+    function getSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('gameHubSettings'));
+        return { ...DEFAULT_SETTINGS, ...saved };
+      } catch (e) { return { ...DEFAULT_SETTINGS }; }
+    }
+
+    function applySettings(settings) {
+      const theme = FELT_THEMES[settings.felt] || FELT_THEMES.emerald;
+      document.documentElement.style.setProperty('--felt-light', theme.light);
+      document.documentElement.style.setProperty('--felt-mid', theme.mid);
+      document.documentElement.style.setProperty('--felt-dark', theme.dark);
+    }
+
+    let currentSettings = getSettings();
+    applySettings(currentSettings);
+
+    // Real-time Search Filter for Rules Cards
+    const searchInput = document.getElementById('gameSearchInput');
+    const ruleCards = document.querySelectorAll('.game-rule-card');
+
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      ruleCards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(term)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

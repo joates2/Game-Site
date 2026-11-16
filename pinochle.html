@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pinochle - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .playing-card {
+      width: 62px;
+      height: 88px;
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+      border-radius: 0.6rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      user-select: none;
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease, opacity 0.16s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 640px) {
+      .playing-card {
+        width: 78px;
+        height: 110px;
+      }
+    }
+
+    .playing-card.playable {
+      cursor: pointer !important;
+    }
+    .playing-card.playable:hover {
+      transform: translateY(-10px);
+    }
+
+    .playing-card.play-highlight {
+      box-shadow: 0 0 0 2px #34d399, 0 6px 16px rgba(16, 185, 129, 0.45);
+    }
+    .playing-card.play-highlight:hover {
+      box-shadow: 0 0 0 3px #6ee7b7, 0 12px 24px rgba(16, 185, 129, 0.65);
+    }
+
+    .playing-card.disabled-card {
+      opacity: 0.4;
+      cursor: not-allowed !important;
+    }
+
+    .playing-card.waiting-card {
+      opacity: 0.85;
+      cursor: default !important;
+    }
+
+    .playing-card.face-down {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      cursor: default;
+    }
+
+    .playing-card.face-down::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 0.35rem;
+      border: 1px dashed rgba(255, 255, 255, 0.4);
+    }
+
+    .card-slot {
+      width: 62px;
+      height: 88px;
+      border-radius: 0.6rem;
+      border: 2px dashed rgba(255, 255, 255, 0.22);
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (min-width: 640px) {
+      .card-slot {
+        width: 78px;
+        height: 110px;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
+    
+    <!-- TOP SITE BANNER -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Card Game Hub</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- PINOCHLE CONTROLS & SCOREBOARD BAR -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-3 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300 font-black shadow-lg">
+          <i class="fa-solid fa-diamond-turn-right text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-sm sm:text-lg font-extrabold tracking-wider text-white uppercase leading-none">Pinochle</h2>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Partnership 48-Card Deck (Game to 1,000)</span>
+        </div>
+      </div>
+
+      <!-- SCORES & BUTTONS -->
+      <div class="flex items-center gap-3 text-xs sm:text-sm font-semibold flex-wrap">
+        <div class="bg-black/30 px-3 py-1 rounded-xl border border-white/10">
+          <span class="text-emerald-200/70">Your Team:</span> <span id="score-team1" class="text-amber-300 font-bold font-mono">0</span> (Pts: <span id="pts-team1">0</span>)
+        </div>
+        <div class="bg-black/30 px-3 py-1 rounded-xl border border-white/10">
+          <span class="text-sky-200/70">Opponents:</span> <span id="score-team2" class="text-sky-300 font-bold font-mono">0</span> (Pts: <span id="pts-team2">0</span>)
+        </div>
+        <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules</span>
+        </button>
+        <button onclick="newGame()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-plus"></i>
+          <span>New Game</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- MAIN GAME TABLE -->
+    <main class="flex-1 flex flex-col justify-between gap-4 mb-8">
+      
+      <!-- PARTNER (BOT 2) -->
+      <div class="glass-panel rounded-2xl p-2.5 sm:p-3 flex flex-col items-center">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-200/70 mb-1">
+          Partner (Bot 2) - (<span id="north-card-count">12</span> cards)
+        </div>
+        <div id="north-hand" class="flex items-center justify-center gap-1 sm:gap-1.5 min-h-[70px]"></div>
+      </div>
+
+      <!-- MIDDLE ROW: BOT 1, TRICK ARENA, BOT 3 -->
+      <div class="flex items-center justify-between gap-2">
+        
+        <!-- BOT 1 -->
+        <div class="glass-panel rounded-2xl p-2.5 flex flex-col items-center max-w-[130px]">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-sky-200/70 mb-1 text-center">
+            Bot 1 (<span id="west-card-count">12</span>)
+          </div>
+          <div id="west-hand" class="flex flex-col items-center gap-1 min-h-[90px]"></div>
+        </div>
+
+        <!-- CENTER TRICK ARENA & BIDDING CONTROLS -->
+        <div class="flex-1 glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center max-w-lg mx-auto">
+          
+          <!-- Status Notification -->
+          <div id="status-message" class="text-xs sm:text-sm font-semibold text-white bg-emerald-950/70 border border-emerald-400/30 px-4 py-2 rounded-xl w-full shadow-lg">
+            Bidding Phase: Select your bid for this round.
+          </div>
+
+          <!-- Bidding Action Controls -->
+          <div id="bidding-controls" class="flex items-center justify-center gap-3 flex-wrap my-1">
+            <select id="bid-select" class="bg-black/60 text-amber-300 font-bold px-3 py-1.5 rounded-xl border border-white/20 text-sm cursor-pointer">
+              <option value="250">250</option>
+              <option value="260">260</option>
+              <option value="270">270</option>
+              <option value="280" selected>280</option>
+              <option value="290">290</option>
+              <option value="300">300</option>
+              <option value="310">310</option>
+              <option value="320">320</option>
+            </select>
+            <button onclick="confirmBid()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-1.5 rounded-xl text-xs shadow-md cursor-pointer">
+              Bid / Pass
+            </button>
+          </div>
+
+          <!-- Current Trick Play Slots -->
+          <div class="grid grid-cols-3 grid-rows-3 gap-2 w-48 h-48 items-center justify-items-center my-1">
+            <div class="col-start-2 row-start-1" id="trick-north">
+              <div class="card-slot opacity-30 w-12 h-16 sm:w-14 sm:h-20"></div>
+            </div>
+            <div class="col-start-1 row-start-2" id="trick-west">
+              <div class="card-slot opacity-30 w-12 h-16 sm:w-14 sm:h-20"></div>
+            </div>
+            <div class="col-start-2 row-start-2 text-[10px] text-emerald-200/60 font-bold uppercase tracking-wider" id="trump-indicator">
+              No Trump
+            </div>
+            <div class="col-start-3 row-start-2" id="trick-east">
+              <div class="card-slot opacity-30 w-12 h-16 sm:w-14 sm:h-20"></div>
+            </div>
+            <div class="col-start-2 row-start-3" id="trick-south">
+              <div class="card-slot opacity-30 w-12 h-16 sm:w-14 sm:h-20"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- BOT 3 -->
+        <div class="glass-panel rounded-2xl p-2.5 flex flex-col items-center max-w-[130px]">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-rose-200/70 mb-1 text-center">
+            Bot 3 (<span id="east-card-count">12</span>)
+          </div>
+          <div id="east-hand" class="flex flex-col items-center gap-1 min-h-[90px]"></div>
+        </div>
+
+      </div>
+
+      <!-- PLAYER HAND AREA (SOUTH) -->
+      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
+          Your Hand
+        </div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-1.5 sm:gap-2.5 min-h-[96px] sm:min-h-[116px]"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target === this) closeRulesModal()">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+            <i class="fa-solid fa-diamond-turn-right text-lg"></i>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">How to Play Pinochle</h2>
+        </div>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+        <p><strong class="text-amber-300">Objective:</strong> First team to reach <strong>1,000 points</strong> wins the game.</p>
+        <p><strong class="text-amber-300">Deck &amp; Cards:</strong> Played with a 48-card Pinochle deck (two of each 9, 10, J, Q, K, A). Card values: Ace = 11, Ten = 10, King = 4, Queen = 3, Jack = 2, Nine = 0.</p>
+        <p><strong class="text-amber-300">Bidding:</strong> Teams bid on the minimum card points they expect to capture in tricks.</p>
+        <p><strong class="text-amber-300">Gameplay:</strong> 12 cards are dealt to each player. Players take turns playing tricks following suit and trump rules.</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-2.5 rounded-xl transition-all shadow-lg cursor-pointer">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- ROUND OVER / GAME OVER MODAL -->
+  <div id="win-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-2xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-400/40 shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 id="modal-title" class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Round Over</h2>
+      <p id="modal-subtitle" class="text-sm text-emerald-100/80 mt-2">Score calculations...</p>
+      <button onclick="closeWinModal(); startNewRound();" class="mt-6 w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 rounded-xl transition-all shadow-lg cursor-pointer">
+        Continue Game
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
+    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
+    const RANK_LABELS = { 9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
+
+    let state = {
+      scores: { team1: 0, team2: 0 },
+      hands: { player: [], west: [], north: [], east: [] },
+      deck: [],
+      trumpSuit: 'spades',
+      winningBid: 280,
+      winningTeam: 1,
+      phase: 'bidding', // 'bidding', 'play', 'round_over', 'game_over'
+      turn: 'player',
+      currentTrick: [],
+      cardPointsWon: { team1: 0, team2: 0 },
+      gameOver: false
+    };
+
+    function getPlayerDisplayName(pos) {
+      if (pos === 'player') return 'You';
+      if (pos === 'west') return 'Bot 1';
+      if (pos === 'north') return 'Partner (Bot 2)';
+      if (pos === 'east') return 'Bot 3';
+      return pos;
+    }
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function formatRank(r) {
+      return RANK_LABELS[r] || r.toString();
+    }
+
+    function getPinochleCardPoints(rank) {
+      if (rank === 14) return 11;
+      if (rank === 10) return 10;
+      if (rank === 13) return 4;
+      if (rank === 12) return 3;
+      if (rank === 11) return 2;
+      return 0;
+    }
+
+    function createPinochleDeck() {
+      const deck = [];
+      let id = 0;
+      for (let d = 0; d < 2; d++) {
+        for (const suit of SUITS) {
+          for (let rank = 9; rank <= 14; rank++) {
+            deck.push({
+              id: id++,
+              suit,
+              rank,
+              points: getPinochleCardPoints(rank),
+              color: SUIT_COLORS[suit],
+              symbol: SUIT_SYMBOLS[suit],
+              label: formatRank(rank)
+            });
+          }
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status-message').textContent = msg;
+    }
+
+    function newGame() {
+      state.scores = { team1: 0, team2: 0 };
+      state.gameOver = false;
+      startNewRound();
+    }
+
+    function startNewRound() {
+      state.deck = createPinochleDeck();
+      state.hands.player = state.deck.splice(0, 12);
+      state.hands.west = state.deck.splice(0, 12);
+      state.hands.north = state.deck.splice(0, 12);
+      state.hands.east = state.deck.splice(0, 12);
+
+      ['player', 'west', 'north', 'east'].forEach(p => sortHand(state.hands[p], 'spades'));
+
+      state.currentTrick = [];
+      state.cardPointsWon = { team1: 0, team2: 0 };
+      state.phase = 'bidding';
+
+      document.getElementById('bidding-controls').classList.remove('hidden');
+      setStatus("Bidding Phase: Select your bid (250-320).");
+      render();
+    }
+
+    function sortHand(hand, trump) {
+      hand.sort((a, b) => {
+        const suitOrder = { spades: 4, hearts: 3, clubs: 2, diamonds: 1 };
+        if (suitOrder[a.suit] !== suitOrder[b.suit]) return suitOrder[b.suit] - suitOrder[a.suit];
+        return b.rank - a.rank;
+      });
+    }
+
+    function confirmBid() {
+      const bid = parseInt(document.getElementById('bid-select').value);
+      state.winningBid = isNaN(bid) ? 280 : bid;
+      state.winningTeam = 1;
+      state.trumpSuit = 'spades';
+
+      document.getElementById('bidding-controls').classList.add('hidden');
+      startPlayPhase();
+    }
+
+    function startPlayPhase() {
+      state.phase = 'play';
+      state.turn = 'player';
+      document.getElementById('trump-indicator').textContent = `Trump: ${state.trumpSuit.toUpperCase()} ${SUIT_SYMBOLS[state.trumpSuit]}`;
+
+      ['player', 'west', 'north', 'east'].forEach(p => sortHand(state.hands[p], state.trumpSuit));
+
+      setStatus(`Bidding won at ${state.winningBid} (Spades). Your turn to lead the first trick.`);
+      render();
+    }
+
+    function isCardPlayable(card, hand) {
+      if (state.phase !== 'play' || state.turn !== 'player') return false;
+      if (state.currentTrick.length === 0) return true;
+      const ledSuit = state.currentTrick[0].card.suit;
+      const hasLed = hand.some(c => c.suit === ledSuit);
+      if (hasLed) return card.suit === ledSuit;
+      return true;
+    }
+
+    function playerPlayCard(id) {
+      if (state.phase !== 'play' || state.turn !== 'player') return;
+      const cardIdx = state.hands.player.findIndex(c => c.id === id);
+      if (cardIdx === -1) return;
+
+      const card = state.hands.player[cardIdx];
+      if (!isCardPlayable(card, state.hands.player)) {
+        setStatus("Invalid play! You must follow led suit if able.");
+        return;
+      }
+
+      state.hands.player.splice(cardIdx, 1);
+      executePlay('player', card);
+    }
+
+    function executePlay(player, card) {
+      state.currentTrick.push({ player, card });
+      render();
+
+      if (state.currentTrick.length === 4) {
+        setTimeout(resolveTrick, 1000);
+      } else {
+        const order = ['player', 'west', 'north', 'east'];
+        const nextIdx = (order.indexOf(player) + 1) % 4;
+        state.turn = order[nextIdx];
+
+        if (state.turn !== 'player') {
+          setTimeout(cpuPlayTurn, 750);
+        } else {
+          setStatus("Your turn to play!");
+          render();
+        }
+      }
+    }
+
+    function cpuPlayTurn() {
+      if (state.phase !== 'play' || state.gameOver) return;
+      const hand = state.hands[state.turn];
+
+      const playable = hand.filter(c => {
+        if (state.currentTrick.length === 0) return true;
+        const ledSuit = state.currentTrick[0].card.suit;
+        const hasLed = hand.some(card => card.suit === ledSuit);
+        if (hasLed) return c.suit === ledSuit;
+        return true;
+      });
+
+      const chosen = playable[0] || hand[0];
+      const idx = hand.findIndex(c => c.id === chosen.id);
+      hand.splice(idx, 1);
+
+      executePlay(state.turn, chosen);
+    }
+
+    function resolveTrick() {
+      const ledSuit = state.currentTrick[0].card.suit;
+      let winningPlay = state.currentTrick[0];
+
+      state.currentTrick.forEach(play => {
+        if (play.card.suit === state.trumpSuit && winningPlay.card.suit !== state.trumpSuit) {
+          winningPlay = play;
+        } else if (play.card.suit === winningPlay.card.suit && play.card.rank > winningPlay.card.rank) {
+          winningPlay = play;
+        }
+      });
+
+      const winner = winningPlay.player;
+      const winningTeam = (winner === 'player' || winner === 'north') ? 1 : 2;
+
+      let trickPts = 0;
+      state.currentTrick.forEach(p => {
+        if (p.card && typeof p.card.points === 'number') {
+          trickPts += p.card.points;
+        }
+      });
+
+      state.cardPointsWon[`team${winningTeam}`] = (state.cardPointsWon[`team${winningTeam}`] || 0) + trickPts;
+
+      if (state.hands.player.length === 0) {
+        state.cardPointsWon[`team${winningTeam}`] += 10;
+      }
+
+      state.turn = winner;
+      state.currentTrick = [];
+
+      render();
+
+      if (state.hands.player.length === 0) {
+        endRound();
+        return;
+      }
+
+      const winnerName = getPlayerDisplayName(winner);
+      setStatus(`Trick won by ${winnerName} (+${trickPts} pts).`);
+      if (winner !== 'player') {
+        setTimeout(cpuPlayTurn, 1000);
+      } else {
+        render();
+      }
+    }
+
+    function endRound() {
+      state.phase = 'round_over';
+
+      const t1Pts = Number(state.cardPointsWon.team1) || 0;
+      const t2Pts = Number(state.cardPointsWon.team2) || 0;
+      const bidVal = Number(state.winningBid) || 280;
+
+      let scoreTeam1 = 0;
+      let scoreTeam2 = 0;
+
+      if (state.winningTeam === 1) {
+        if (t1Pts >= bidVal) {
+          scoreTeam1 = t1Pts;
+          scoreTeam2 = t2Pts;
+        } else {
+          scoreTeam1 = -bidVal;
+          scoreTeam2 = t2Pts;
+        }
+      } else {
+        if (t2Pts >= bidVal) {
+          scoreTeam1 = t1Pts;
+          scoreTeam2 = t2Pts;
+        } else {
+          scoreTeam1 = t1Pts;
+          scoreTeam2 = -bidVal;
+        }
+      }
+
+      state.scores.team1 = (Number(state.scores.team1) || 0) + scoreTeam1;
+      state.scores.team2 = (Number(state.scores.team2) || 0) + scoreTeam2;
+      render();
+
+      if (state.scores.team1 >= 1000 || state.scores.team2 >= 1000) {
+        state.gameOver = true;
+        const winnerName = state.scores.team1 >= state.scores.team2 ? 'Your Team' : 'Opponents';
+        document.getElementById('modal-title').textContent = "Game Over!";
+        document.getElementById('modal-subtitle').textContent = `${winnerName} won the game to 1,000 points!`;
+      } else {
+        document.getElementById('modal-title').textContent = "Round Complete";
+        document.getElementById('modal-subtitle').textContent = `Card Points — Your Team: ${t1Pts} | Opponents: ${t2Pts}.`;
+      }
+
+      const modal = document.getElementById('win-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      if (state.gameOver) {
+        newGame();
+      } else {
+        startNewRound();
+      }
+    }
+
+    function createCardHTML(card, extraClasses = '') {
+      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      return `
+        <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}">
+          <div class="flex items-center justify-between leading-none font-extrabold text-[10px] sm:text-xs">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+          <div class="text-center text-lg sm:text-2xl leading-none my-auto">
+            ${card.symbol}
+          </div>
+          <div class="flex items-center justify-between leading-none font-extrabold text-[10px] sm:text-xs rotate-180">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      document.getElementById('score-team1').textContent = Number(state.scores.team1) || 0;
+      document.getElementById('score-team2').textContent = Number(state.scores.team2) || 0;
+      document.getElementById('pts-team1').textContent = Number(state.cardPointsWon.team1) || 0;
+      document.getElementById('pts-team2').textContent = Number(state.cardPointsWon.team2) || 0;
+
+      document.getElementById('north-card-count').textContent = state.hands.north.length;
+      document.getElementById('west-card-count').textContent = state.hands.west.length;
+      document.getElementById('east-card-count').textContent = state.hands.east.length;
+
+      document.getElementById('north-hand').innerHTML = state.hands.north.map(() => `<div class="playing-card face-down w-6 h-9 sm:w-8 sm:h-11"></div>`).join('');
+      document.getElementById('west-hand').innerHTML = state.hands.west.map(() => `<div class="playing-card face-down w-9 h-6 sm:w-11 sm:h-8"></div>`).join('');
+      document.getElementById('east-hand').innerHTML = state.hands.east.map(() => `<div class="playing-card face-down w-9 h-6 sm:w-11 sm:h-8"></div>`).join('');
+
+      ['north', 'south', 'east', 'west'].forEach(pos => {
+        const slot = document.getElementById(`trick-${pos}`);
+        const play = state.currentTrick.find(p => {
+          if (pos === 'south') return p.player === 'player';
+          return p.player === pos;
+        });
+        if (play) {
+          slot.innerHTML = createCardHTML(play.card);
+        } else {
+          slot.innerHTML = `<div class="card-slot opacity-30 w-12 h-16 sm:w-14 sm:h-20"></div>`;
+        }
+      });
+
+      const playerHandEl = document.getElementById('player-hand');
+      playerHandEl.innerHTML = state.hands.player.map(c => {
+        let cardClasses = 'waiting-card';
+        let wrapperCursor = 'cursor-default';
+
+        if (state.phase === 'play') {
+          if (state.turn === 'player') {
+            const playable = isCardPlayable(c, state.hands.player);
+            cardClasses = playable ? 'playable play-highlight' : 'disabled-card';
+            wrapperCursor = playable ? 'cursor-pointer' : 'cursor-not-allowed';
+          } else {
+            cardClasses = 'waiting-card';
+            wrapperCursor = 'cursor-default';
+          }
+        }
+
+        return `<div class="${wrapperCursor}" onclick="playerPlayCard(${c.id})">${createCardHTML(c, cardClasses)}</div>`;
+      }).join('');
+    }
+
+    startNewRound();
+  </script>
+</body>
+</html>

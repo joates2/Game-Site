@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Go Fish - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .playing-card {
+      width: 68px;
+      height: 96px;
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+      border-radius: 0.65rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      user-select: none;
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease, opacity 0.16s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 640px) {
+      .playing-card {
+        width: 82px;
+        height: 116px;
+      }
+    }
+
+    .playing-card.playable {
+      cursor: pointer;
+    }
+    .playing-card.playable:hover {
+      transform: translateY(-8px);
+    }
+
+    .playing-card.selected {
+      transform: translateY(-12px);
+      box-shadow: 0 0 0 3px #facc15, 0 12px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .playing-card.face-down {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      cursor: default;
+    }
+
+    .playing-card.face-down::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 0.4rem;
+      border: 1px dashed rgba(255, 255, 255, 0.4);
+    }
+
+    /* Full-size sideways card back for side wings */
+    .playing-card.face-down.sideways {
+      width: 82px;
+      height: 58px;
+      border-radius: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .playing-card.face-down.sideways {
+        width: 100px;
+        height: 70px;
+      }
+    }
+    .playing-card.face-down.sideways::before {
+      inset: 3px;
+      border-radius: 0.3rem;
+    }
+
+    .card-slot {
+      width: 68px;
+      height: 96px;
+      border-radius: 0.65rem;
+      border: 2px dashed rgba(255, 255, 255, 0.22);
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (min-width: 640px) {
+      .card-slot {
+        width: 82px;
+        height: 116px;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-2 sm:px-5 py-3 sm:py-5">
+    
+    <!-- TOP SITE BANNER -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Card Game Hub</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- GO FISH CONTROLS & SCORE BAR -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-3 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300 font-black shadow-lg">
+          <i class="fa-solid fa-fish text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-sm sm:text-lg font-extrabold tracking-wider text-white uppercase leading-none">Go Fish</h2>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Collect 4-of-a-kind books</span>
+        </div>
+      </div>
+
+      <!-- SCOREBOARD & CONFIG -->
+      <div class="flex items-center gap-3 text-xs sm:text-sm font-semibold">
+        <div class="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
+          <label for="player-count-select" class="text-emerald-200/70">Players:</label>
+          <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-black/50 text-amber-300 font-bold rounded-lg px-2 py-0.5 border border-white/20 focus:outline-none cursor-pointer">
+            <option value="2">1 Player</option>
+            <option value="3">2 Players</option>
+            <option value="4">3 Players</option>
+          </select>
+        </div>
+
+        <div class="bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
+          <span class="text-emerald-200/70">You:</span> <span id="player-books" class="text-amber-300 font-bold">0</span> books
+        </div>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-book-open"></i>
+            <span class="hidden sm:inline">Rules</span>
+          </button>
+          <button onclick="newGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-plus"></i>
+            <span>New Game</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN GAME TABLE -->
+    <main class="flex-1 flex flex-col justify-between gap-4 mb-8">
+      
+      <!-- TOP BOT AREA -->
+      <div id="top-cpu-wrapper" class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full">
+        <div id="cpu-label" class="text-xs font-bold uppercase tracking-wider text-sky-200/70 mb-2">
+          Bot 1 (<span id="cpu-card-count">7</span> cards in hand)
+        </div>
+        <div id="cpu-hand" class="flex items-center justify-center gap-1.5 sm:gap-2 min-h-[96px] sm:min-h-[116px] overflow-x-auto w-full"></div>
+        <div id="cpu-top-action" class="mt-2"></div>
+      </div>
+
+      <!-- MIDDLE ROW: LEFT WING, CENTER ARENA, RIGHT WING -->
+      <div class="grid grid-cols-1 md:grid-cols-[240px_1fr_240px] gap-4 items-stretch w-full">
+        
+        <!-- LEFT SIDE BOT WING -->
+        <div id="cpu-left-slot" class="w-full flex-shrink-0 hidden"></div>
+
+        <!-- CENTER ARENA: OCEAN (STOCK) & MESSAGE LOGS -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-3 text-center w-full max-w-xl mx-auto md:col-start-2">
+          
+          <!-- Persistent Bot Action / Ask Log -->
+          <div id="cpu-action-log" class="text-xs sm:text-sm font-bold text-sky-200 bg-sky-950/70 border border-sky-400/40 px-4 py-2 rounded-xl w-full shadow-md flex items-center gap-2 justify-center">
+            <i class="fa-solid fa-comment-dots text-sky-300"></i>
+            <span id="cpu-action-text">Waiting for game actions...</span>
+          </div>
+
+          <!-- Status Notification -->
+          <div id="status-message" class="text-xs sm:text-sm font-semibold text-white bg-emerald-950/70 border border-emerald-400/30 px-5 py-2.5 rounded-xl w-full shadow-lg">
+            Select a rank from your hand to ask Bot 1!
+          </div>
+
+          <!-- Stock Pile / Ocean -->
+          <div class="flex items-center justify-center gap-6 my-1">
+            <div class="flex flex-col items-center">
+              <div id="stock-pile" class="card-slot relative flex items-center justify-center shadow-lg cursor-default">
+                <div id="stock-visual" class="w-full h-full relative flex items-center justify-center"></div>
+              </div>
+              <span id="stock-count-label" class="text-[10px] uppercase font-bold text-emerald-200/80 mt-1">26 cards</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE BOT WING -->
+        <div id="cpu-right-slot" class="w-full flex-shrink-0 hidden"></div>
+
+      </div>
+
+      <!-- PLAYER HAND AREA -->
+      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-4xl mx-auto w-full">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
+          Your Hand (Click a card rank to ask an opponent)
+        </div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Go Fish Rules</h2>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong class="text-amber-300">Objective:</strong> Collect the most 4-of-a-kind card books (all 4 suits of a single rank, e.g., four 7s).</p>
+        <p><strong class="text-amber-300">Asking for Cards:</strong> On your turn, click a card in your hand to ask an opponent if they have any cards of that rank. If they do, they must hand them all over to you, and you get another turn.</p>
+        <p><strong class="text-amber-300">Go Fish!:</strong> If the opponent does not have the requested rank, they will tell you to "Go Fish!". You automatically draw a card from the ocean pond. If you draw the exact card rank you asked for, you get another turn!</p>
+        <p><strong class="text-amber-300">Books:</strong> Whenever you or an opponent collect all 4 cards of a single rank, a book is automatically scored and removed from the hand.</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- WIN MODAL -->
+  <div id="win-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-400/40 shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 id="win-title" class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Game Over!</h2>
+      <p id="win-subtitle" class="text-sm text-emerald-100/80 mt-2">Checking final book counts...</p>
+      <button onclick="closeWinModal(); newGame();" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Play Again
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
+    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
+    const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+
+    let totalPlayers = 2; // 2 = 1 Bot, 3 = 2 Bots, 4 = 3 Bots
+    let state = {
+      deck: [],
+      playerHand: [],
+      cpuHands: [[], [], []],
+      playerBooks: 0,
+      cpuBooks: [0, 0, 0],
+      turnIndex: 0, // 0 = player, 1..N = Bots
+      gameOver: false,
+      waitingForPlayerAction: true
+    };
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function formatRank(r) {
+      return RANK_LABELS[r] || r.toString();
+    }
+
+    function createDeck() {
+      const deck = [];
+      let id = 0;
+      for (const suit of SUITS) {
+        for (let rank = 1; rank <= 13; rank++) {
+          deck.push({
+            id: id++,
+            suit,
+            rank,
+            color: SUIT_COLORS[suit],
+            symbol: SUIT_SYMBOLS[suit],
+            label: formatRank(rank)
+          });
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status-message').textContent = msg;
+    }
+
+    function setCpuActionLog(msg) {
+      document.getElementById('cpu-action-text').textContent = msg;
+    }
+
+    function changePlayerCount(val) {
+      totalPlayers = parseInt(val);
+      selectedAskRank = null;
+      newGame();
+    }
+
+    function newGame() {
+      selectedAskRank = null;
+      state.deck = createDeck();
+      state.playerHand = [];
+      state.cpuHands = [[], [], []];
+      state.playerBooks = 0;
+      state.cpuBooks = [0, 0, 0];
+      state.turnIndex = 0;
+      state.gameOver = false;
+      state.waitingForPlayerAction = true;
+
+      const numCPUs = totalPlayers - 1;
+      const initialCards = totalPlayers <= 3 ? 7 : 5;
+
+      for (let i = 0; i < initialCards; i++) {
+        state.playerHand.push(state.deck.pop());
+        for (let c = 0; c < numCPUs; c++) {
+          state.cpuHands[c].push(state.deck.pop());
+        }
+      }
+
+      sortHand(state.playerHand);
+      for (let c = 0; c < numCPUs; c++) {
+        sortHand(state.cpuHands[c]);
+        checkForBooks('cpu', c);
+      }
+      checkForBooks('player');
+
+      setStatus("Your turn! Click any card in your hand to choose a rank.");
+      setCpuActionLog("Game started. Choose a card rank to begin!");
+      render();
+    }
+
+    function sortHand(hand) {
+      hand.sort((a, b) => a.rank - b.rank);
+    }
+
+    function checkForBooks(who, cpuIndex = 0) {
+      const hand = who === 'player' ? state.playerHand : state.cpuHands[cpuIndex];
+      const counts = {};
+      hand.forEach(c => {
+        counts[c.rank] = (counts[c.rank] || 0) + 1;
+      });
+
+      let foundBookRank = null;
+      for (const rank in counts) {
+        if (counts[rank] === 4) {
+          foundBookRank = parseInt(rank);
+          break;
+        }
+      }
+
+      if (foundBookRank !== null) {
+        if (who === 'player') {
+          state.playerHand = state.playerHand.filter(c => c.rank !== foundBookRank);
+          state.playerBooks++;
+          setStatus(`You completed a book of ${formatRank(foundBookRank)}s! (+1 Book)`);
+        } else {
+          state.cpuHands[cpuIndex] = state.cpuHands[cpuIndex].filter(c => c.rank !== foundBookRank);
+          state.cpuBooks[cpuIndex]++;
+          setCpuActionLog(`Bot ${cpuIndex + 1} completed a book of ${formatRank(foundBookRank)}s!`);
+        }
+        render();
+
+        const totalBooksCollected = state.playerBooks + state.cpuBooks.slice(0, totalPlayers - 1).reduce((a, b) => a + b, 0);
+        if (totalBooksCollected === 13) {
+          endGame();
+          return true;
+        }
+        return checkForBooks(who, cpuIndex);
+      }
+      return false;
+    }
+
+    function selectCardToAsk(rank) {
+      if (state.turnIndex !== 0 || state.gameOver || !state.waitingForPlayerAction) return;
+
+      const rankName = formatRank(rank);
+      const numCPUs = totalPlayers - 1;
+
+      if (numCPUs === 1) {
+        executePlayerAsk(rank, 0);
+      } else {
+        state.waitingForPlayerAction = false;
+        setStatus(`Asking for ${rankName}s. Click which opponent to ask at their table seat!`);
+        render();
+      }
+    }
+
+    function executePlayerAsk(rank, cpuIndex) {
+      state.waitingForPlayerAction = true;
+      selectedAskRank = null;
+      const rankName = formatRank(rank);
+      const targetCpuName = `Bot ${cpuIndex + 1}`;
+
+      setStatus(`You asked ${targetCpuName}: "Do you have any ${rankName}s?"`);
+
+      const matches = state.cpuHands[cpuIndex].filter(c => c.rank === rank);
+
+      if (matches.length > 0) {
+        state.cpuHands[cpuIndex] = state.cpuHands[cpuIndex].filter(c => c.rank !== rank);
+        state.playerHand.push(...matches);
+        sortHand(state.playerHand);
+
+        setTimeout(() => {
+          setStatus(`${targetCpuName} handed over ${matches.length} ${rankName}(s)! Take another turn.`);
+          checkForBooks('player');
+          render();
+        }, 900);
+      } else {
+        setTimeout(() => {
+          setStatus(`${targetCpuName} says: "Go Fish!" Drawing from the pond.`);
+          setTimeout(() => playerGoFish(rank), 900);
+        }, 900);
+      }
+    }
+
+    function playerGoFish(askedRank) {
+      if (state.deck.length > 0) {
+        const drawn = state.deck.pop();
+        state.playerHand.push(drawn);
+        sortHand(state.playerHand);
+
+        const rankName = drawn.label;
+        setStatus(`You drew a card from the pond (${rankName}).`);
+        
+        const matchedAsked = (drawn.rank === askedRank);
+        checkForBooks('player');
+        render();
+
+        setTimeout(() => {
+          if (matchedAsked) {
+            setStatus(`Lucky! You drew the ${rankName} you asked for. Take another turn!`);
+          } else {
+            advanceTurn();
+          }
+        }, 1100);
+      } else {
+        setStatus("The pond is empty!");
+        setTimeout(advanceTurn, 1000);
+      }
+    }
+
+    function advanceTurn() {
+      state.turnIndex = (state.turnIndex + 1) % totalPlayers;
+      render();
+      if (state.turnIndex === 0) {
+        setStatus("Your turn! Click a card in your hand to ask.");
+      } else {
+        setStatus(`Waiting for Bot ${state.turnIndex}...`);
+        setTimeout(runCpuTurn, 1000);
+      }
+    }
+
+    function runCpuTurn() {
+      if (state.gameOver) return;
+      const cpuIndex = state.turnIndex - 1;
+      const cpuName = `Bot ${state.turnIndex}`;
+
+      if (state.cpuHands[cpuIndex].length === 0) {
+        if (state.deck.length > 0) state.cpuHands[cpuIndex].push(state.deck.pop());
+        else { advanceTurn(); return; }
+      }
+
+      const randomCard = state.cpuHands[cpuIndex][Math.floor(Math.random() * state.cpuHands[cpuIndex].length)];
+      const rank = randomCard.rank;
+      const rankName = formatRank(rank);
+
+      const possibleTargets = [];
+      if (state.playerHand.length > 0) possibleTargets.push({ type: 'player' });
+      for (let c = 0; c < totalPlayers - 1; c++) {
+        if (c !== cpuIndex && state.cpuHands[c].length > 0) {
+          possibleTargets.push({ type: 'cpu', index: c });
+        }
+      }
+
+      if (possibleTargets.length === 0) {
+        advanceTurn();
+        return;
+      }
+
+      const target = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+      const targetName = target.type === 'player' ? 'You' : `Bot ${target.index + 1}`;
+
+      const askMsg = `${cpuName} asks ${targetName}: "Do you have any ${rankName}s?"`;
+      setCpuActionLog(askMsg);
+
+      setTimeout(() => {
+        if (target.type === 'player') {
+          const matches = state.playerHand.filter(c => c.rank === rank);
+          if (matches.length > 0) {
+            state.playerHand = state.playerHand.filter(c => c.rank !== rank);
+            state.cpuHands[cpuIndex].push(...matches);
+            sortHand(state.cpuHands[cpuIndex]);
+
+            const responseMsg = `You gave ${cpuName} ${matches.length} ${rankName}(s). ${cpuName} gets another turn.`;
+            setStatus(responseMsg);
+            checkForBooks('cpu', cpuIndex);
+            render();
+
+            if (!state.gameOver) {
+              setTimeout(runCpuTurn, 1500);
+            }
+          } else {
+            const responseMsg = `You said "Go Fish!" ${cpuName} draws from the pond.`;
+            setStatus(responseMsg);
+
+            setTimeout(() => {
+              if (state.deck.length > 0) {
+                state.cpuHands[cpuIndex].push(state.deck.pop());
+                sortHand(state.cpuHands[cpuIndex]);
+                checkForBooks('cpu', cpuIndex);
+              }
+              advanceTurn();
+            }, 1200);
+          }
+        } else {
+          const targetCpuIdx = target.index;
+          const matches = state.cpuHands[targetCpuIdx].filter(c => c.rank === rank);
+          if (matches.length > 0) {
+            state.cpuHands[targetCpuIdx] = state.cpuHands[targetCpuIdx].filter(c => c.rank !== rank);
+            state.cpuHands[cpuIndex].push(...matches);
+            sortHand(state.cpuHands[cpuIndex]);
+
+            const responseMsg = `Bot ${targetCpuIdx + 1} gave ${cpuName} ${matches.length} ${rankName}(s)!`;
+            setStatus(responseMsg);
+            checkForBooks('cpu', cpuIndex);
+            render();
+
+            if (!state.gameOver) {
+              setTimeout(runCpuTurn, 1500);
+            }
+          } else {
+            const responseMsg = `Bot ${targetCpuIdx + 1} said "Go Fish!".`;
+            setStatus(responseMsg);
+            setTimeout(advanceTurn, 1200);
+          }
+        }
+      }, 1200);
+    }
+
+    function endGame() {
+      state.gameOver = true;
+      const title = document.getElementById('win-title');
+      const subtitle = document.getElementById('win-subtitle');
+
+      let maxBooks = state.playerBooks;
+      let winnerText = "You Won!";
+
+      for (let c = 0; c < totalPlayers - 1; c++) {
+        if (state.cpuBooks[c] > maxBooks) {
+          maxBooks = state.cpuBooks[c];
+          winnerText = `Bot ${c + 1} Won!`;
+        }
+      }
+
+      title.textContent = winnerText;
+      subtitle.textContent = `You got ${state.playerBooks} books. Final scores tallied!`;
+
+      const modal = document.getElementById('win-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function createCardHTML(card, extraClasses = '') {
+      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      return `
+        <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}" data-rank="${card.rank}">
+          <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+          <div class="text-center text-xl sm:text-2xl leading-none my-auto">
+            ${card.symbol}
+          </div>
+          <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm rotate-180">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildSideCpuPanel(cpuIdx) {
+      const isTurn = (state.turnIndex === cpuIdx + 1);
+      const cardCount = state.cpuHands[cpuIdx].length;
+      const booksCount = state.cpuBooks[cpuIdx];
+      const showAskBtn = (state.turnIndex === 0 && !state.waitingForPlayerAction && selectedAskRank !== null);
+
+      const overlapClass = cardCount > 5 ? '-mt-9 sm:-mt-11 first:mt-0' : '-mt-6 sm:-mt-7 first:mt-0';
+
+      return `
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-between h-full transition-all ${isTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}">
+          <div class="text-center mb-2">
+            <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-sky-200">
+              Bot ${cpuIdx + 1}
+            </div>
+            <div class="text-xs text-sky-200/70 font-semibold">
+              ${cardCount} cards • <span class="text-amber-300 font-bold">${booksCount} books</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center justify-center my-auto py-3">
+            ${cardCount > 0 
+              ? state.cpuHands[cpuIdx].map(() => `<div class="playing-card face-down sideways ${overlapClass}"></div>`).join('')
+              : `<div class="text-xs text-emerald-200/50 italic py-4">Empty hand</div>`
+            }
+          </div>
+
+          ${showAskBtn 
+            ? `<button onclick="executePlayerAsk(${selectedAskRank}, ${cpuIdx})" class="mt-3 w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl shadow-md animate-pulse">Ask Bot ${cpuIdx + 1}</button>` 
+            : `<div class="h-2"></div>`
+          }
+        </div>
+      `;
+    }
+
+    function render() {
+      const stockVisual = document.getElementById('stock-visual');
+      stockVisual.innerHTML = '';
+      const cardsLeft = state.deck.length;
+      document.getElementById('stock-count-label').textContent = `${cardsLeft} card${cardsLeft === 1 ? '' : 's'}`;
+
+      const stackCount = Math.min(Math.ceil(cardsLeft / 4), 10);
+      for (let i = 0; i < stackCount; i++) {
+        const offset = i * 1.5;
+        const cardBack = document.createElement('div');
+        cardBack.className = 'playing-card face-down w-full h-full absolute top-0 left-0';
+        cardBack.style.transform = `translate(-${offset}px, -${offset}px)`;
+        cardBack.style.zIndex = i + 1;
+        stockVisual.appendChild(cardBack);
+      }
+
+      document.getElementById('player-books').textContent = state.playerBooks;
+
+      const numCPUs = totalPlayers - 1;
+      const topCpuWrapper = document.getElementById('top-cpu-wrapper');
+      const cpuHandEl = document.getElementById('cpu-hand');
+      const cpuLabelEl = document.getElementById('cpu-label');
+      const cpuTopActionEl = document.getElementById('cpu-top-action');
+
+      const leftSlot = document.getElementById('cpu-left-slot');
+      const rightSlot = document.getElementById('cpu-right-slot');
+
+      cpuTopActionEl.innerHTML = '';
+      leftSlot.innerHTML = '';
+      rightSlot.innerHTML = '';
+      leftSlot.className = 'w-full flex-shrink-0 hidden';
+      rightSlot.className = 'w-full flex-shrink-0 hidden';
+
+      if (numCPUs === 1) {
+        const isTurn = (state.turnIndex === 1);
+        topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
+        cpuLabelEl.innerHTML = `Bot 1 (${state.cpuHands[0].length} cards in hand) — <span class="text-amber-300">${state.cpuBooks[0]} books</span>`;
+        cpuHandEl.innerHTML = state.cpuHands[0].map(() => `<div class="playing-card face-down"></div>`).join('');
+      } else if (numCPUs === 2) {
+        leftSlot.className = 'w-full flex-shrink-0 block';
+        leftSlot.innerHTML = buildSideCpuPanel(0);
+
+        const isTopTurn = (state.turnIndex === 2);
+        topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTopTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
+        cpuLabelEl.innerHTML = `Bot 2 (${state.cpuHands[1].length} cards in hand) — <span class="text-amber-300">${state.cpuBooks[1]} books</span>`;
+        cpuHandEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card face-down"></div>`).join('');
+        
+        if (state.turnIndex === 0 && !state.waitingForPlayerAction && selectedAskRank !== null) {
+          cpuTopActionEl.innerHTML = `<button onclick="executePlayerAsk(${selectedAskRank}, 1)" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-md animate-pulse">Ask Bot 2</button>`;
+        }
+      } else if (numCPUs === 3) {
+        leftSlot.className = 'w-full flex-shrink-0 block';
+        leftSlot.innerHTML = buildSideCpuPanel(0);
+
+        const isTopTurn = (state.turnIndex === 2);
+        topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTopTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
+        cpuLabelEl.innerHTML = `Bot 2 (${state.cpuHands[1].length} cards in hand) — <span class="text-amber-300">${state.cpuBooks[1]} books</span>`;
+        cpuHandEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card face-down"></div>`).join('');
+
+        if (state.turnIndex === 0 && !state.waitingForPlayerAction && selectedAskRank !== null) {
+          cpuTopActionEl.innerHTML = `<button onclick="executePlayerAsk(${selectedAskRank}, 1)" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-md animate-pulse">Ask Bot 2</button>`;
+        }
+
+        rightSlot.className = 'w-full flex-shrink-0 block';
+        rightSlot.innerHTML = buildSideCpuPanel(2);
+      }
+
+      const playerHandEl = document.getElementById('player-hand');
+      playerHandEl.innerHTML = state.playerHand.map((c) => {
+        const playable = (state.turnIndex === 0 && !state.gameOver);
+        const isSelected = (selectedAskRank === c.rank);
+        let classes = playable ? 'playable' : 'disabled-card';
+        if (isSelected) classes += ' selected';
+        return `<div onclick="handlePlayerCardClick(${c.rank})">${createCardHTML(c, classes)}</div>`;
+      }).join('');
+    }
+
+    let selectedAskRank = null;
+    function handlePlayerCardClick(rank) {
+      if (state.turnIndex !== 0 || state.gameOver) return;
+      selectedAskRank = rank;
+      const rankName = formatRank(rank);
+
+      if (totalPlayers === 2) {
+        selectCardToAsk(rank);
+      } else {
+        state.waitingForPlayerAction = false;
+        setStatus(`Selected ${rankName}. Now click which opponent to ask at their table seat!`);
+        render();
+      }
+    }
+
+    newGame();
+  </script>
+</body>
+</html>

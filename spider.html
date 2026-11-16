@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Spider Solitaire - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+      --ui-scale: 1;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: calc(1rem * var(--ui-scale));
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+      transition: background 0.3s ease;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .card-slot {
+      aspect-ratio: 2.5 / 3.5;
+      border-radius: 0.65rem;
+      border: 1.5px dashed rgba(255, 255, 255, 0.22);
+      background: rgba(0, 0, 0, 0.22);
+      position: relative;
+    }
+
+    .card-slot.drag-over,
+    .card-slot.hint-target,
+    .tableau-column.drag-over,
+    .tableau-column.hint-target {
+      border-color: #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 0.65rem;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    }
+
+    .playing-card {
+      aspect-ratio: 2.5 / 3.5;
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+      border-radius: 0.65rem;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.14s ease, opacity 0.14s ease;
+      position: relative;
+    }
+
+    /* High Contrast / Dark Pips Card Face */
+    html.high-contrast-cards .playing-card:not(.face-down) {
+      background: #18181b;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+    }
+
+    .playing-card:active {
+      cursor: grabbing;
+    }
+
+    /* Deck Back Colors (Matches Klondike Classic) */
+    .playing-card.face-down,
+    html[data-deck-color="red"] .playing-card.face-down {
+      background: linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #dc2626 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      cursor: default;
+    }
+
+    html[data-deck-color="blue"] .playing-card.face-down {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    html[data-deck-color="gold"] .playing-card.face-down {
+      background: linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%);
+      border: 2px solid #fef3c7;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    html[data-deck-color="green"] .playing-card.face-down {
+      background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Patterned Royal Card-Back Design */
+    .playing-card.face-down::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: calc(0.65rem - 3px);
+      border: 1px dashed rgba(255, 255, 255, 0.5);
+      background: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.12) 2px, transparent 2px) 0 0 / 12px 12px,
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 6px, transparent 6px, transparent 12px);
+    }
+
+    .playing-card:not(.face-down):hover,
+    .stock-deck-hover:hover {
+      transform: translateY(-3px);
+    }
+
+    .playing-card.selected {
+      transform: translateY(-6px);
+      box-shadow: 0 0 0 3px #facc15, 0 10px 20px rgba(0, 0, 0, 0.6);
+      z-index: 40 !important;
+    }
+
+    .playing-card.hinted {
+      box-shadow: 0 0 0 3px #38bdf8, 0 10px 20px rgba(0, 0, 0, 0.6);
+      z-index: 45 !important;
+      animation: pulse-hint 0.8s infinite alternate;
+    }
+
+    @keyframes pulse-hint {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-4px) scale(1.03); }
+    }
+
+    .playing-card.dragging {
+      opacity: 0.4;
+    }
+
+    /* Suit Colors & 4-Color Deck Support */
+    .suit-red { color: #e63946; }
+    .suit-black { color: #1e293b; }
+    .suit-blue { color: #2563eb; }
+    .suit-green { color: #16a34a; }
+
+    html.high-contrast-cards .suit-red { color: #ff5a67; }
+    html.high-contrast-cards .suit-black { color: #f8fafc; }
+    html.high-contrast-cards .suit-blue { color: #38bdf8; }
+    html.high-contrast-cards .suit-green { color: #4ade80; }
+
+    .tableau-column {
+      position: relative;
+      min-height: 24rem;
+    }
+
+    @media (max-width: 640px) {
+      .card-slot, .playing-card {
+        border-radius: 0.4rem;
+      }
+      .tableau-column {
+        min-height: 18rem;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
+    
+    <!-- TOP SITE BANNER (Matches Home Page) -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Classic Game Hub</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links + Settings Button -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- SPIDER SOLITAIRE CONTROLS & STATS BAR -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-2.5 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 font-black shadow-lg">
+          <i class="fa-solid fa-spider text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-sm sm:text-lg font-extrabold tracking-wider text-white uppercase leading-none">Spider Solitaire</h2>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold" id="suit-mode-label">1 Suit (Easy)</span>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold">
+        <div class="flex items-center gap-1.5 bg-black/25 px-3 py-1 rounded-xl border border-white/10">
+          <i class="fa-solid fa-arrows-up-down-left-right text-amber-400"></i>
+          <span class="text-emerald-200/70">Moves:</span>
+          <span id="move-count" class="text-white font-bold">0</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-black/25 px-3 py-1 rounded-xl border border-white/10">
+          <i class="fa-regular fa-clock text-amber-400"></i>
+          <span id="timer" class="text-white font-bold font-mono">00:00</span>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btn-undo" onclick="undoMove()" disabled class="bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span class="hidden sm:inline">Undo</span>
+        </button>
+        <button id="btn-hint" onclick="showHint()" class="bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-sky-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-lightbulb text-amber-300"></i>
+          <span class="hidden sm:inline">Hint</span>
+        </button>
+        <select id="suit-selector" onchange="changeSuitMode(this.value)" class="bg-black/40 text-amber-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-white/15 focus:outline-none cursor-pointer">
+          <option value="1">1 Suit</option>
+          <option value="2">2 Suits</option>
+          <option value="4">4 Suits</option>
+        </select>
+        <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span class="hidden sm:inline">Rules</span>
+        </button>
+        <button onclick="newGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-plus"></i>
+          <span>New Game</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- GAME BOARD -->
+    <main class="flex-1 flex flex-col gap-4 sm:gap-6 mb-8">
+      
+      <!-- TOP DECK & COMPLETED FOUNDATION ROW -->
+      <div class="flex items-center justify-between px-2">
+        <div class="flex flex-col items-center gap-1">
+          <!-- Stock / Deal Pile -->
+          <div id="stock-container" class="w-16 sm:w-20 cursor-pointer flex items-center justify-center relative stock-deck-hover" title="Deal 10 cards to tableau" style="aspect-ratio: 2.5/3.5;" onclick="dealStock()">
+            <div id="stock-visual" class="w-full h-full relative flex items-center justify-center">
+              <!-- Rendered deck stacks or empty slot via JS -->
+            </div>
+          </div>
+          <div id="stock-count" class="text-[10px] sm:text-xs font-bold text-emerald-200/80">50 cards</div>
+        </div>
+
+        <!-- Completed Sets Foundations (8 King-to-Ace runs) -->
+        <div id="foundations-container" class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1">
+          <!-- Dynamically filled as King-to-Ace runs are completed -->
+        </div>
+      </div>
+
+      <!-- TABLEAU: 10 COLUMNS -->
+      <div id="tableau-grid" class="grid grid-cols-10 gap-1 sm:gap-2.5 flex-1">
+        <div id="tableau-0" class="tableau-column"></div>
+        <div id="tableau-1" class="tableau-column"></div>
+        <div id="tableau-2" class="tableau-column"></div>
+        <div id="tableau-3" class="tableau-column"></div>
+        <div id="tableau-4" class="tableau-column"></div>
+        <div id="tableau-5" class="tableau-column"></div>
+        <div id="tableau-6" class="tableau-column"></div>
+        <div id="tableau-7" class="tableau-column"></div>
+        <div id="tableau-8" class="tableau-column"></div>
+        <div id="tableau-9" class="tableau-column"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Spider Solitaire Rules</h2>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong class="text-amber-300">Objective:</strong> Assemble 8 complete descending sequences from King down to Ace in the tableau. Once a full suit run is formed, it is automatically removed to the foundation.</p>
+        <p><strong class="text-amber-300">Tableau Building:</strong> Build descending sequences down regardless of suit (e.g., any 8 on any 9). However, only cards of the <strong class="text-amber-300">same suit</strong> in sequential order can be moved together as a group.</p>
+        <p><strong class="text-amber-300">Empty Columns:</strong> Any single card or valid same-suit sequence can be placed into an empty tableau column.</p>
+        <p><strong class="text-amber-300">Stock Pile:</strong> Click the stock deck at any time to deal one new face-up card to every tableau column (note: no column can be empty when dealing).</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- WIN MODAL -->
+  <div id="win-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-400/40 shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-spider"></i>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Web Cleared!</h2>
+      <p class="text-sm text-emerald-100/80 mt-2">You successfully completed all 8 spider sequences.</p>
+      <div class="grid grid-cols-2 gap-3 my-6 bg-black/30 rounded-2xl p-4 border border-white/10">
+        <div>
+          <div class="text-xs text-emerald-200/60 uppercase font-bold">Total Moves</div>
+          <div id="win-moves" class="text-xl font-extrabold text-white mt-0.5">0</div>
+        </div>
+        <div>
+          <div class="text-xs text-emerald-200/60 uppercase font-bold">Time</div>
+          <div id="win-time" class="text-xl font-extrabold text-amber-300 mt-0.5 font-mono">00:00</div>
+        </div>
+      </div>
+      <button onclick="closeWinModal(); newGame();" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Play Again
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
+    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
+    const RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+
+    let suitMode = 1;
+    let state = {
+      tableau: [[], [], [], [], [], [], [], [], [], []],
+      stock: [],
+      foundations: [],
+      moves: 0
+    };
+
+    let history = [];
+    let selected = null;
+    let dragSource = null;
+    let hintCard = null;
+    let hintTargetCol = null;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let timerStarted = false;
+
+    function getAppSettings() {
+      return window.GameHubSettings ? window.GameHubSettings.get() : {
+        sound: true,
+        uiScale: 1,
+        felt: 'emerald',
+        deck: 'red',
+        cardFace: 'standard',
+        highContrast: false,
+        animSpeed: 'normal'
+      };
+    }
+
+    let audioCtx = null;
+    function playSound(type) {
+      if (!getAppSettings().sound) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'move') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(340, now);
+          osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          osc.frequency.setValueAtTime(1046.5, now + 0.3);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.addEventListener('gameSettingsChanged', () => {
+        render();
+      });
+      newGame();
+    });
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function formatRank(r) {
+      return RANK_LABELS[r] || r.toString();
+    }
+
+    function createSpiderDeck(numSuits) {
+      const deck = [];
+      let suitPool = [];
+      if (numSuits === 1) {
+        suitPool = ['spades', 'spades', 'spades', 'spades', 'spades', 'spades', 'spades', 'spades'];
+      } else if (numSuits === 2) {
+        suitPool = ['spades', 'spades', 'hearts', 'hearts', 'spades', 'spades', 'hearts', 'hearts'];
+      } else {
+        suitPool = ['spades', 'hearts', 'clubs', 'diamonds', 'spades', 'hearts', 'clubs', 'diamonds'];
+      }
+
+      suitPool.forEach(suit => {
+        for (const rank of RANKS) {
+          deck.push({
+            suit,
+            rank,
+            color: SUIT_COLORS[suit],
+            symbol: SUIT_SYMBOLS[suit],
+            label: formatRank(rank),
+            faceUp: false
+          });
+        }
+      });
+      return shuffle(deck);
+    }
+
+    function shuffle(deck) {
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      secondsElapsed = 0;
+      timerStarted = false;
+      updateTimerDisplay();
+    }
+
+    function triggerTimer() {
+      if (!timerStarted) {
+        timerStarted = true;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          updateTimerDisplay();
+        }, 1000);
+      }
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+      const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${mins}:${secs}`;
+    }
+
+    function saveHistory() {
+      history.push(JSON.parse(JSON.stringify({
+        tableau: state.tableau,
+        stock: state.stock,
+        foundations: state.foundations,
+        moves: state.moves
+      })));
+      document.getElementById('btn-undo').disabled = history.length === 0;
+    }
+
+    function undoMove() {
+      if (history.length === 0) return;
+      const prev = history.pop();
+      state.tableau = prev.tableau;
+      state.stock = prev.stock;
+      state.foundations = prev.foundations;
+      state.moves = prev.moves;
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+      hintTargetCol = null;
+      document.getElementById('btn-undo').disabled = history.length === 0;
+      playSound('move');
+      render();
+    }
+
+    function changeSuitMode(val) {
+      suitMode = parseInt(val);
+      const labels = { 1: '1 Suit (Easy)', 2: '2 Suits (Medium)', 4: '4 Suits (Hard)' };
+      document.getElementById('suit-mode-label').textContent = labels[suitMode];
+      newGame();
+    }
+
+    function newGame() {
+      const deck = createSpiderDeck(suitMode);
+      state.tableau = [[], [], [], [], [], [], [], [], [], []];
+      state.foundations = [];
+      state.moves = 0;
+      history = [];
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+      hintTargetCol = null;
+
+      let deckIdx = 0;
+      for (let c = 0; c < 10; c++) {
+        const count = c < 4 ? 6 : 5;
+        for (let i = 0; i < count; i++) {
+          const card = deck[deckIdx++];
+          card.faceUp = (i === count - 1);
+          state.tableau[c].push(card);
+        }
+      }
+
+      state.stock = [];
+      while (deckIdx < deck.length) {
+        const batch = [];
+        for (let i = 0; i < 10 && deckIdx < deck.length; i++) {
+          const card = deck[deckIdx++];
+          card.faceUp = true;
+          batch.push(card);
+        }
+        state.stock.push(batch);
+      }
+
+      document.getElementById('btn-undo').disabled = true;
+      startTimer();
+      render();
+    }
+
+    function dealStock() {
+      if (state.stock.length === 0) return;
+
+      for (let c = 0; c < 10; c++) {
+        if (state.tableau[c].length === 0) {
+          alert("Cannot deal stock while any tableau column is empty!");
+          return;
+        }
+      }
+
+      saveHistory();
+      triggerTimer();
+      const batch = state.stock.shift();
+      batch.forEach((card, c) => {
+        state.tableau[c].push(card);
+      });
+
+      state.moves++;
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+      hintTargetCol = null;
+      playSound('move');
+      render();
+      checkCompletedRunsAll();
+      checkWin();
+    }
+
+    function isValidSpiderRun(colIndex, startIndex) {
+      const col = state.tableau[colIndex];
+      if (startIndex >= col.length) return false;
+      if (!col[startIndex].faceUp) return false;
+
+      for (let i = startIndex; i < col.length - 1; i++) {
+        const curr = col[i];
+        const next = col[i + 1];
+        if (!next.faceUp || curr.suit !== next.suit || curr.rank !== next.rank + 1) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function canMoveToTableau(movingCards, targetColIndex) {
+      const targetCol = state.tableau[targetColIndex];
+      const bottomMoving = movingCards[0];
+
+      if (targetCol.length === 0) return true;
+      const topTarget = targetCol[targetCol.length - 1];
+      return topTarget.rank === bottomMoving.rank + 1;
+    }
+
+    function executeMove(targetColIndex, sourceOverride = null) {
+      const activeSource = sourceOverride || selected;
+      if (!activeSource) return;
+
+      const srcCol = activeSource.col;
+      const srcIndex = activeSource.index;
+
+      if (srcCol === targetColIndex) {
+        selected = null;
+        dragSource = null;
+        hintCard = null;
+        hintTargetCol = null;
+        render();
+        return;
+      }
+
+      const movingCards = state.tableau[srcCol].slice(srcIndex);
+      if (!canMoveToTableau(movingCards, targetColIndex)) return;
+
+      saveHistory();
+      triggerTimer();
+
+      state.tableau[srcCol].splice(srcIndex);
+
+      if (state.tableau[srcCol].length > 0) {
+        const newTop = state.tableau[srcCol][state.tableau[srcCol].length - 1];
+        if (!newTop.faceUp) {
+          newTop.faceUp = true;
+        }
+      }
+
+      state.tableau[targetColIndex].push(...movingCards);
+
+      state.moves++;
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+      hintTargetCol = null;
+      playSound('move');
+      render();
+      checkCompletedRunsAll();
+      checkWin();
+    }
+
+    function checkCompletedRunsAll() {
+      let foundCompleted = false;
+
+      for (let c = 0; c < 10; c++) {
+        const col = state.tableau[c];
+        if (col.length < 13) continue;
+
+        const startIndex = col.length - 13;
+        if (col[startIndex].rank === 13 && isValidSpiderRun(c, startIndex)) {
+          const completedRun = col.splice(startIndex, 13);
+          state.foundations.push(completedRun[0]);
+          foundCompleted = true;
+
+          if (col.length > 0) {
+            const topCard = col[col.length - 1];
+            if (!topCard.faceUp) topCard.faceUp = true;
+          }
+          break;
+        }
+      }
+
+      if (foundCompleted) {
+        playSound('win');
+        render();
+        checkWin();
+        setTimeout(checkCompletedRunsAll, 100);
+      }
+    }
+
+    function handleCardClick(e, colIndex, cardIndex) {
+      e.stopPropagation();
+      hintCard = null;
+      hintTargetCol = null;
+      const card = state.tableau[colIndex][cardIndex];
+
+      if (!card.faceUp) return;
+
+      if (selected) {
+        if (selected.col === colIndex && selected.index === cardIndex) {
+          selected = null;
+          render();
+          return;
+        }
+        executeMove(colIndex);
+        return;
+      }
+
+      if (isValidSpiderRun(colIndex, cardIndex)) {
+        selected = { col: colIndex, index: cardIndex };
+        render();
+      }
+    }
+
+    function handleColumnClick(colIndex) {
+      if (!selected) return;
+      hintCard = null;
+      hintTargetCol = null;
+      if (state.tableau[colIndex].length === 0) {
+        executeMove(colIndex);
+      }
+    }
+
+    function showHint() {
+      for (let srcC = 0; srcC < 10; srcC++) {
+        const col = state.tableau[srcC];
+        for (let i = 0; i < col.length; i++) {
+          if (col[i].faceUp && isValidSpiderRun(srcC, i)) {
+            const movingCards = col.slice(i);
+            for (let targetC = 0; targetC < 10; targetC++) {
+              if (srcC === targetC) continue;
+              if (canMoveToTableau(movingCards, targetC)) {
+                if (state.tableau[targetC].length === 0 && i === 0 && state.tableau[srcC].length === movingCards.length) {
+                  continue;
+                }
+                hintCard = { col: srcC, index: i };
+                hintTargetCol = targetC;
+                render();
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function handleDragStart(e, colIndex, cardIndex) {
+      if (!isValidSpiderRun(colIndex, cardIndex)) {
+        e.preventDefault();
+        return;
+      }
+      hintCard = null;
+      hintTargetCol = null;
+      dragSource = { col: colIndex, index: cardIndex };
+      selected = { col: colIndex, index: cardIndex };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', JSON.stringify(dragSource));
+
+      setTimeout(() => {
+        if (dragSource) render();
+      }, 0);
+    }
+
+    function handleDragEnd() {
+      dragSource = null;
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      render();
+    }
+
+    function setupDropZone(el, colIndex) {
+      el.ondragover = (e) => {
+        if (!dragSource) return;
+        const movingCards = state.tableau[dragSource.col].slice(dragSource.index);
+        if (dragSource.col !== colIndex && canMoveToTableau(movingCards, colIndex)) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          el.classList.add('drag-over');
+        }
+      };
+
+      el.ondragleave = () => {
+        el.classList.remove('drag-over');
+      };
+
+      el.ondrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.remove('drag-over');
+        if (!dragSource) return;
+        executeMove(colIndex, dragSource);
+      };
+    }
+
+    let touchDragState = null;
+
+    function handleTouchStart(e, colIndex, cardIndex) {
+      if (e.touches.length !== 1) return;
+      const card = state.tableau[colIndex][cardIndex];
+      if (!card.faceUp || !isValidSpiderRun(colIndex, cardIndex)) return;
+
+      const touch = e.touches[0];
+      const cardEl = e.currentTarget;
+      const rect = cardEl.getBoundingClientRect();
+
+      touchDragState = {
+        source: { col: colIndex, index: cardIndex },
+        startX: touch.clientX,
+        startY: touch.clientY,
+        offsetX: touch.clientX - rect.left,
+        offsetY: touch.clientY - rect.top,
+        isDragging: false,
+        ghostEl: null
+      };
+    }
+
+    function handleTouchMove(e) {
+      if (!touchDragState) return;
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchDragState.startX;
+      const dy = touch.clientY - touchDragState.startY;
+
+      if (!touchDragState.isDragging && Math.hypot(dx, dy) > 8) {
+        touchDragState.isDragging = true;
+        hintCard = null;
+        hintTargetCol = null;
+        dragSource = touchDragState.source;
+        selected = touchDragState.source;
+
+        const cards = state.tableau[dragSource.col].slice(dragSource.index);
+        const ghost = document.createElement('div');
+        ghost.style.position = 'fixed';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = '1000';
+        ghost.style.width = `${document.querySelector('.playing-card').offsetWidth}px`;
+        
+        const isMobile = window.innerWidth < 640;
+        const gap = isMobile ? 22 : 30;
+        cards.forEach((c, idx) => {
+          const colorClass = getSuitColorClass(c.suit);
+          const clone = document.createElement('div');
+          clone.className = `playing-card p-1 sm:p-2 flex flex-col justify-between ${colorClass}`;
+          clone.style.position = 'absolute';
+          clone.style.top = `${idx * gap}px`;
+          clone.style.left = '0';
+          clone.style.right = '0';
+          clone.style.width = '100%';
+          clone.style.height = '100%';
+          clone.style.boxShadow = '0 14px 28px rgba(0,0,0,0.65)';
+          clone.innerHTML = `
+            <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-base">
+              <span>${c.label}</span>
+              <span class="text-[10px] sm:text-sm">${c.symbol}</span>
+            </div>
+            <div class="text-center text-lg sm:text-3xl leading-none my-auto">
+              ${c.symbol}
+            </div>
+          `;
+          ghost.appendChild(clone);
+        });
+
+        document.body.appendChild(ghost);
+        touchDragState.ghostEl = ghost;
+        render();
+      }
+
+      if (touchDragState.isDragging && touchDragState.ghostEl) {
+        e.preventDefault();
+        touchDragState.ghostEl.style.left = `${touch.clientX - touchDragState.offsetX}px`;
+        touchDragState.ghostEl.style.top = `${touch.clientY - touchDragState.offsetY}px`;
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (!touchDragState) return;
+
+      if (touchDragState.isDragging) {
+        if (touchDragState.ghostEl) {
+          touchDragState.ghostEl.remove();
+        }
+        const touch = e.changedTouches[0];
+        const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+        const colEl = targetEl ? targetEl.closest('.tableau-column') : null;
+
+        if (colEl) {
+          const colId = colEl.id;
+          const targetCol = parseInt(colId.replace('tableau-', ''), 10);
+          executeMove(targetCol, touchDragState.source);
+        } else {
+          dragSource = null;
+          render();
+        }
+      }
+
+      touchDragState = null;
+    }
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    function checkWin() {
+      if (state.foundations.length === 8) {
+        clearInterval(timerInterval);
+        playSound('win');
+        document.getElementById('win-moves').textContent = state.moves;
+        document.getElementById('win-time').textContent = document.getElementById('timer').textContent;
+        const modal = document.getElementById('win-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function getSuitColorClass(suit) {
+      const faceStyle = getAppSettings().cardCardFace || getAppSettings().cardFace || 'standard';
+      if (faceStyle === 'fourcolor') {
+        if (suit === 'hearts') return 'suit-red';
+        if (suit === 'diamonds') return 'suit-blue';
+        if (suit === 'clubs') return 'suit-green';
+        if (suit === 'spades') return 'suit-black';
+      }
+      return SUIT_COLORS[suit] === 'red' ? 'suit-red' : 'suit-black';
+    }
+
+    function render() {
+      document.getElementById('move-count').textContent = state.moves;
+      const batchesLeft = state.stock.length;
+      document.getElementById('stock-count').textContent = batchesLeft === 0 ? '0 cards' : `${batchesLeft * 10} cards`;
+
+      const stockVisual = document.getElementById('stock-visual');
+      stockVisual.innerHTML = '';
+      
+      const stockContainer = document.getElementById('stock-container');
+      if (batchesLeft === 0) {
+        stockContainer.className = 'card-slot w-16 sm:w-20 flex items-center justify-center relative';
+        stockContainer.style.cursor = 'default';
+        stockVisual.innerHTML = '<span class="text-white/20 text-xs"><i class="fa-solid fa-ban"></i></span>';
+      } else {
+        stockContainer.className = 'card-slot w-16 sm:w-20 cursor-pointer flex items-center justify-center relative stock-deck-hover border-0 bg-transparent';
+        stockContainer.style.aspectRatio = '2.5/3.5';
+        for (let i = 0; i < batchesLeft; i++) {
+          const offset = i * 1.5;
+          const cardBack = document.createElement('div');
+          cardBack.className = 'playing-card face-down w-full h-full absolute top-0 left-0';
+          cardBack.style.transform = `translate(-${offset}px, -${offset}px)`;
+          cardBack.style.zIndex = i + 1;
+          stockVisual.appendChild(cardBack);
+        }
+      }
+
+      const foundContainer = document.getElementById('foundations-container');
+      foundContainer.innerHTML = '';
+      state.foundations.forEach(card => {
+        const el = document.createElement('div');
+        const colorClass = getSuitColorClass(card.suit);
+        el.className = `playing-card w-10 sm:w-12 p-1 flex flex-col justify-between ${colorClass} shadow-md`;
+        el.innerHTML = `
+          <div class="flex items-center justify-between leading-none font-extrabold text-[10px]">
+            <span>K</span>
+            <span>${card.symbol}</span>
+          </div>
+          <div class="text-center text-sm leading-none my-auto">
+            ${card.symbol}
+          </div>
+        `;
+        foundContainer.appendChild(el);
+      });
+
+      const isMobile = window.innerWidth < 640;
+      const verticalGapFaceDown = isMobile ? 14 : 18;
+      const verticalGapFaceUp = isMobile ? 22 : 30;
+
+      for (let c = 0; c < 10; c++) {
+        const colEl = document.getElementById(`tableau-${c}`);
+        colEl.classList.remove('hint-target');
+        if (hintTargetCol === c) {
+          colEl.classList.add('hint-target');
+        }
+
+        setupDropZone(colEl, c);
+        colEl.innerHTML = '';
+        const col = state.tableau[c];
+
+        if (col.length === 0) {
+          const emptySlot = document.createElement('div');
+          emptySlot.className = `card-slot w-full cursor-pointer ${hintTargetCol === c ? 'hint-target' : ''}`;
+          emptySlot.onclick = () => handleColumnClick(c);
+          colEl.appendChild(emptySlot);
+        } else {
+          let currentTop = 0;
+          col.forEach((card, idx) => {
+            const cardEl = document.createElement('div');
+            cardEl.style.position = 'absolute';
+            cardEl.style.top = `${currentTop}px`;
+            cardEl.style.left = '0';
+            cardEl.style.right = '0';
+            cardEl.style.zIndex = idx + 1;
+
+            if (!card.faceUp) {
+              cardEl.className = 'playing-card face-down w-full';
+              currentTop += verticalGapFaceDown;
+            } else {
+              const colorClass = getSuitColorClass(card.suit);
+              const isSel = selected && selected.col === c && idx >= selected.index;
+              const isHnt = hintCard && hintCard.col === c && idx === hintCard.index;
+              const isDragging = dragSource && dragSource.col === c && idx >= dragSource.index;
+
+              let extraClasses = '';
+              if (isSel) extraClasses += ' selected';
+              if (isHnt) extraClasses += ' hinted';
+              if (isDragging) extraClasses += ' dragging';
+
+              cardEl.className = `playing-card w-full p-1 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}`;
+              cardEl.innerHTML = `
+                <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-base pointer-events-none">
+                  <span>${card.label}</span>
+                  <span class="text-[10px] sm:text-sm">${card.symbol}</span>
+                </div>
+                <div class="text-center text-lg sm:text-3xl leading-none my-auto pointer-events-none">
+                  ${card.symbol}
+                </div>
+                <div class="hidden sm:flex items-center justify-between leading-none font-extrabold text-base rotate-180 pointer-events-none">
+                  <span>${card.label}</span>
+                  <span class="text-sm">${card.symbol}</span>
+                </div>
+              `;
+
+              const draggable = isValidSpiderRun(c, idx);
+              cardEl.draggable = draggable;
+              if (!draggable) {
+                cardEl.style.cursor = 'default';
+              }
+
+              cardEl.onclick = (e) => handleCardClick(e, c, idx);
+              cardEl.ondragstart = (e) => handleDragStart(e, c, idx);
+              cardEl.ondragend = handleDragEnd;
+              cardEl.ontouchstart = (e) => handleTouchStart(e, c, idx);
+
+              currentTop += verticalGapFaceUp;
+            }
+
+            colEl.appendChild(cardEl);
+          });
+
+          colEl.style.minHeight = `${Math.max(isMobile ? 260 : 380, currentTop + 100)}px`;
+        }
+      }
+    }
+
+    window.addEventListener('resize', render);
+  </script>
+</body>
+</html>

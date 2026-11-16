@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FreeCell - Solitaire Suite</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+      --ui-scale: 1;
+      --card-font-sm: calc(0.75rem * var(--ui-scale));
+      --card-font-lg: calc(1.875rem * var(--ui-scale));
+    }
+
+    html[data-card-face="large"] {
+      --card-font-sm: calc(0.95rem * var(--ui-scale));
+      --card-font-lg: calc(2.25rem * var(--ui-scale));
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: calc(1rem * var(--ui-scale));
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+      transition: background 0.3s ease;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Card & Slot Styling */
+    .card-slot {
+      aspect-ratio: 2.5 / 3.5;
+      border-radius: 0.65rem;
+      border: 1.5px dashed rgba(255, 255, 255, 0.22);
+      background: rgba(0, 0, 0, 0.22);
+      position: relative;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .card-slot.valid-target,
+    .card-slot.drag-over {
+      border-color: #facc15;
+      background: rgba(250, 204, 21, 0.15);
+    }
+
+    .tableau-column.drag-over {
+      background: rgba(250, 204, 21, 0.08);
+      border-radius: 0.65rem;
+    }
+
+    .playing-card {
+      aspect-ratio: 2.5 / 3.5;
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+      border-radius: 0.65rem;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.14s ease, opacity 0.14s ease;
+      position: relative;
+    }
+
+    /* High Contrast / Dark Pips Card Face */
+    html.high-contrast-cards .playing-card {
+      background: #18181b;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+    }
+
+    .playing-card:active {
+      cursor: grabbing;
+    }
+
+    .playing-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .playing-card.selected {
+      transform: translateY(-6px);
+      box-shadow: 0 0 0 3px #facc15, 0 10px 20px rgba(0, 0, 0, 0.6);
+      z-index: 40 !important;
+    }
+
+    .playing-card.dragging {
+      opacity: 0.5;
+    }
+
+    .playing-card.hinted {
+      box-shadow: 0 0 0 3px #38bdf8, 0 10px 20px rgba(0, 0, 0, 0.6);
+      z-index: 45 !important;
+      animation: pulse-hint 0.8s infinite alternate;
+    }
+
+    @keyframes pulse-hint {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-4px) scale(1.03); }
+    }
+
+    /* Suit Colors & 4-Color Deck Support */
+    .suit-red { color: #e63946; }
+    .suit-black { color: #1e293b; }
+    .suit-blue { color: #2563eb; }
+    .suit-green { color: #16a34a; }
+
+    html.high-contrast-cards .suit-red { color: #ff5a67; }
+    html.high-contrast-cards .suit-black { color: #f8fafc; }
+    html.high-contrast-cards .suit-blue { color: #38bdf8; }
+    html.high-contrast-cards .suit-green { color: #4ade80; }
+
+    .tableau-column {
+      position: relative;
+      min-height: 22rem;
+    }
+
+    @media (max-width: 640px) {
+      .card-slot, .playing-card {
+        border-radius: 0.4rem;
+      }
+      .tableau-column {
+        min-height: 18rem;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
+    
+    <!-- TOP SITE BANNER (Matches Home Page) -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Classic Game Hub</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links + Settings Button -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- FREECELL GAME CONTROLS BAR -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-2.5 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 font-black shadow-lg">
+          <i class="fa-solid fa-chess-board text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-sm sm:text-lg font-extrabold tracking-wider text-white uppercase leading-none">FreeCell</h2>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold">
+        <div class="flex items-center gap-1.5 bg-black/25 px-3 py-1 rounded-xl border border-white/10">
+          <i class="fa-solid fa-arrows-up-down-left-right text-amber-400"></i>
+          <span class="text-emerald-200/70">Moves:</span>
+          <span id="move-count" class="text-white font-bold">0</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-black/25 px-3 py-1 rounded-xl border border-white/10">
+          <i class="fa-regular fa-clock text-amber-400"></i>
+          <span id="timer" class="text-white font-bold font-mono">00:00</span>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btn-undo" onclick="undoMove()" disabled class="bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span class="hidden sm:inline">Undo</span>
+        </button>
+        <button id="btn-hint" onclick="showHint()" class="bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-sky-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-lightbulb text-amber-300"></i>
+          <span class="hidden sm:inline">Hint</span>
+        </button>
+        <button id="btn-autocomplete" onclick="autoComplete()" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-emerald-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+          <span class="hidden md:inline">Auto-Finish</span>
+        </button>
+        <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span class="hidden sm:inline">Rules</span>
+        </button>
+        <button onclick="newGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-plus"></i>
+          <span>New Game</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- GAME BOARD -->
+    <main class="flex-1 flex flex-col gap-4 sm:gap-6 mb-8">
+      
+      <!-- TOP ROW: 4 FREE CELLS + 4 FOUNDATIONS -->
+      <div class="grid grid-cols-8 gap-1.5 sm:gap-3">
+        <!-- 4 Free Cells -->
+        <div id="freecell-0" onclick="handleSlotClick('freecell', 0)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-white/20 pointer-events-none">Free</span>
+        </div>
+        <div id="freecell-1" onclick="handleSlotClick('freecell', 1)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-white/20 pointer-events-none">Free</span>
+        </div>
+        <div id="freecell-2" onclick="handleSlotClick('freecell', 2)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-white/20 pointer-events-none">Free</span>
+        </div>
+        <div id="freecell-3" onclick="handleSlotClick('freecell', 3)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-white/20 pointer-events-none">Free</span>
+        </div>
+
+        <!-- 4 Foundations -->
+        <div id="foundation-0" onclick="handleSlotClick('foundation', 0)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-lg sm:text-2xl text-white/20 pointer-events-none">♠</span>
+        </div>
+        <div id="foundation-1" onclick="handleSlotClick('foundation', 1)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-lg sm:text-2xl text-red-400/25 pointer-events-none">♥</span>
+        </div>
+        <div id="foundation-2" onclick="handleSlotClick('foundation', 2)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-lg sm:text-2xl text-white/20 pointer-events-none">♣</span>
+        </div>
+        <div id="foundation-3" onclick="handleSlotClick('foundation', 3)" class="card-slot flex items-center justify-center cursor-pointer">
+          <span class="text-lg sm:text-2xl text-red-400/25 pointer-events-none">♦</span>
+        </div>
+      </div>
+
+      <!-- TABLEAU: 8 COLUMNS -->
+      <div id="tableau-grid" class="grid grid-cols-8 gap-1.5 sm:gap-3 flex-1">
+        <div id="tableau-0" onclick="handleSlotClick('tableau', 0)" class="tableau-column"></div>
+        <div id="tableau-1" onclick="handleSlotClick('tableau', 1)" class="tableau-column"></div>
+        <div id="tableau-2" onclick="handleSlotClick('tableau', 2)" class="tableau-column"></div>
+        <div id="tableau-3" onclick="handleSlotClick('tableau', 3)" class="tableau-column"></div>
+        <div id="tableau-4" onclick="handleSlotClick('tableau', 4)" class="tableau-column"></div>
+        <div id="tableau-5" onclick="handleSlotClick('tableau', 5)" class="tableau-column"></div>
+        <div id="tableau-6" onclick="handleSlotClick('tableau', 6)" class="tableau-column"></div>
+        <div id="tableau-7" onclick="handleSlotClick('tableau', 7)" class="tableau-column"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">FreeCell Rules</h2>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong class="text-amber-300">Objective:</strong> Move all 52 cards to the four foundation piles, built up by suit from Ace to King (Ace, 2, 3... King).</p>
+        <p><strong class="text-amber-300">Free Cells:</strong> The four open slots at the top left can temporarily hold any single card.</p>
+        <p><strong class="text-amber-300">Tableau Piles:</strong> Build descending sequences alternating colors (e.g., a Black 8 on a Red 9). You can move structured sequences depending on available empty free cells and columns.</p>
+        <p><strong class="text-amber-300">Empty Columns:</strong> Any card or valid descending sequence can be moved into an empty tableau column.</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- WIN MODAL -->
+  <div id="win-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-400/40 shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Victory!</h2>
+      <p class="text-sm text-emerald-100/80 mt-2">You cleared all foundations cleanly.</p>
+      <div class="grid grid-cols-2 gap-3 my-6 bg-black/30 rounded-2xl p-4 border border-white/10">
+        <div>
+          <div class="text-xs text-emerald-200/60 uppercase font-bold">Total Moves</div>
+          <div id="win-moves" class="text-xl font-extrabold text-white mt-0.5">0</div>
+        </div>
+        <div>
+          <div class="text-xs text-emerald-200/60 uppercase font-bold">Time</div>
+          <div id="win-time" class="text-xl font-extrabold text-amber-300 mt-0.5 font-mono">00:00</div>
+        </div>
+      </div>
+      <button onclick="closeWinModal(); newGame();" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Deal Another Hand
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
+    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
+    const RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+
+    let state = {
+      freeCells: [null, null, null, null],
+      foundations: [[], [], [], []],
+      tableau: [[], [], [], [], [], [], [], []],
+      moves: 0
+    };
+
+    let history = [];
+    let selected = null;
+    let dragSource = null;
+    let hintCard = null;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let timerStarted = false;
+
+    function getAppSettings() {
+      return window.GameHubSettings ? window.GameHubSettings.get() : {
+        sound: true,
+        uiScale: 1,
+        felt: 'emerald',
+        deck: 'red',
+        cardFace: 'standard',
+        highContrast: false,
+        animSpeed: 'normal'
+      };
+    }
+
+    let audioCtx = null;
+    function playSound(type) {
+      if (!getAppSettings().sound) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'move') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(340, now);
+          osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          osc.frequency.setValueAtTime(1046.5, now + 0.3);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.addEventListener('gameSettingsChanged', () => {
+        render();
+      });
+      newGame();
+    });
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function formatRank(r) {
+      return RANK_LABELS[r] || r.toString();
+    }
+
+    function createDeck() {
+      const deck = [];
+      for (const suit of SUITS) {
+        for (const rank of RANKS) {
+          deck.push({
+            suit,
+            rank,
+            color: SUIT_COLORS[suit],
+            symbol: SUIT_SYMBOLS[suit],
+            label: formatRank(rank)
+          });
+        }
+      }
+      return deck;
+    }
+
+    function shuffle(deck) {
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      secondsElapsed = 0;
+      timerStarted = false;
+      updateTimerDisplay();
+    }
+
+    function triggerTimer() {
+      if (!timerStarted) {
+        timerStarted = true;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          updateTimerDisplay();
+        }, 1000);
+      }
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+      const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${mins}:${secs}`;
+    }
+
+    function saveHistory() {
+      history.push(JSON.parse(JSON.stringify({
+        freeCells: state.freeCells,
+        foundations: state.foundations,
+        tableau: state.tableau,
+        moves: state.moves
+      })));
+      document.getElementById('btn-undo').disabled = history.length === 0;
+    }
+
+    function undoMove() {
+      if (history.length === 0) return;
+      const prev = history.pop();
+      state.freeCells = prev.freeCells;
+      state.foundations = prev.foundations;
+      state.tableau = prev.tableau;
+      state.moves = prev.moves;
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+      document.getElementById('btn-undo').disabled = history.length === 0;
+      playSound('move');
+      render();
+    }
+
+    function newGame() {
+      const deck = shuffle(createDeck());
+      state.freeCells = [null, null, null, null];
+      state.foundations = [[], [], [], []];
+      state.tableau = [[], [], [], [], [], [], [], []];
+      state.moves = 0;
+      history = [];
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+
+      deck.forEach((card, i) => {
+        state.tableau[i % 8].push(card);
+      });
+
+      document.getElementById('btn-undo').disabled = true;
+      startTimer();
+      render();
+    }
+
+    function isValidRun(colIndex, startIndex) {
+      const col = state.tableau[colIndex];
+      for (let i = startIndex; i < col.length - 1; i++) {
+        const curr = col[i];
+        const next = col[i + 1];
+        if (curr.color === next.color || curr.rank !== next.rank + 1) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function getMaxMovable(targetIsEmptyCol = false) {
+      const emptyFree = state.freeCells.filter(c => c === null).length;
+      let emptyCols = state.tableau.filter(col => col.length === 0).length;
+      if (targetIsEmptyCol && emptyCols > 0) {
+        emptyCols--;
+      }
+      return (1 + emptyFree) * Math.pow(2, emptyCols);
+    }
+
+    function canMoveToFoundation(card, foundationIndex) {
+      const expectedSuit = SUITS[foundationIndex];
+      if (card.suit !== expectedSuit) return false;
+      const pile = state.foundations[foundationIndex];
+      if (pile.length === 0) return card.rank === 1;
+      return card.rank === pile[pile.length - 1].rank + 1;
+    }
+
+    function canMoveToTableau(cards, targetColIndex) {
+      const targetCol = state.tableau[targetColIndex];
+      const maxAllowed = getMaxMovable(targetCol.length === 0);
+      if (cards.length > maxAllowed) return false;
+      if (targetCol.length === 0) return true;
+      const topTarget = targetCol[targetCol.length - 1];
+      const bottomMoving = cards[0];
+      return topTarget.color !== bottomMoving.color && topTarget.rank === bottomMoving.rank + 1;
+    }
+
+    function getCardsFromSource(src) {
+      if (!src) return [];
+      if (src.zone === 'freecell') {
+        const c = state.freeCells[src.col];
+        return c ? [c] : [];
+      }
+      if (src.zone === 'foundation') {
+        const pile = state.foundations[src.col];
+        return pile.length ? [pile[pile.length - 1]] : [];
+      }
+      if (src.zone === 'tableau') {
+        return state.tableau[src.col].slice(src.index);
+      }
+      return [];
+    }
+
+    function getSelectedCards() {
+      return getCardsFromSource(selected);
+    }
+
+    function executeMove(targetZone, targetCol, sourceOverride = null) {
+      const activeSource = sourceOverride || selected;
+      const movingCards = getCardsFromSource(activeSource);
+      if (movingCards.length === 0) return false;
+
+      if (targetZone === 'freecell') {
+        if (movingCards.length !== 1 || state.freeCells[targetCol] !== null) return false;
+        saveHistory();
+        triggerTimer();
+        removeFromSource(activeSource);
+        state.freeCells[targetCol] = movingCards[0];
+      } else if (targetZone === 'foundation') {
+        if (movingCards.length !== 1 || !canMoveToFoundation(movingCards[0], targetCol)) return false;
+        saveHistory();
+        triggerTimer();
+        removeFromSource(activeSource);
+        state.foundations[targetCol].push(movingCards[0]);
+      } else if (targetZone === 'tableau') {
+        if (activeSource.zone === 'tableau' && activeSource.col === targetCol) return false;
+        if (!canMoveToTableau(movingCards, targetCol)) return false;
+        saveHistory();
+        triggerTimer();
+        removeFromSource(activeSource);
+        state.tableau[targetCol].push(...movingCards);
+      }
+
+      state.moves++;
+      selected = null;
+      dragSource = null;
+      hintCard = null;
+      playSound('move');
+      render();
+      checkWin();
+      return true;
+    }
+
+    function removeFromSource(src) {
+      if (src.zone === 'freecell') {
+        state.freeCells[src.col] = null;
+      } else if (src.zone === 'foundation') {
+        state.foundations[src.col].pop();
+      } else if (src.zone === 'tableau') {
+        state.tableau[src.col].splice(src.index);
+      }
+    }
+
+    function handleCardClick(e, zone, col, index) {
+      e.stopPropagation();
+      hintCard = null;
+
+      if (selected) {
+        if (selected.zone === zone && selected.col === col && selected.index === index) {
+          selected = null;
+          render();
+          return;
+        }
+
+        const moved = executeMove(zone, col);
+        if (moved) return;
+      }
+
+      if (zone === 'freecell' && state.freeCells[col]) {
+        selected = { zone: 'freecell', col, index: 0 };
+      } else if (zone === 'foundation' && state.foundations[col].length > 0) {
+        selected = { zone: 'foundation', col, index: state.foundations[col].length - 1 };
+      } else if (zone === 'tableau') {
+        if (isValidRun(col, index)) {
+          selected = { zone: 'tableau', col, index };
+        }
+      }
+      render();
+    }
+
+    function handleSlotClick(zone, col) {
+      if (!selected) return;
+      hintCard = null;
+      executeMove(zone, col);
+    }
+
+    function handleCardDoubleClick(e, zone, col, index) {
+      e.stopPropagation();
+      hintCard = null;
+      let card = null;
+      if (zone === 'freecell') {
+        card = state.freeCells[col];
+      } else if (zone === 'tableau') {
+        const pile = state.tableau[col];
+        if (index !== pile.length - 1) return;
+        card = pile[index];
+      }
+      if (!card) return;
+
+      selected = { zone, col, index };
+
+      const fIndex = SUITS.indexOf(card.suit);
+      if (canMoveToFoundation(card, fIndex)) {
+        executeMove('foundation', fIndex);
+        return;
+      }
+
+      if (zone === 'tableau') {
+        const emptyFree = state.freeCells.findIndex(c => c === null);
+        if (emptyFree !== -1) {
+          executeMove('freecell', emptyFree);
+          return;
+        }
+      }
+
+      selected = null;
+      render();
+    }
+
+    function isCardDraggable(zone, col, index) {
+      if (zone === 'freecell') return state.freeCells[col] !== null;
+      if (zone === 'foundation') return state.foundations[col].length > 0 && index === state.foundations[col].length - 1;
+      if (zone === 'tableau') return isValidRun(col, index);
+      return false;
+    }
+
+    function handleDragStart(e, zone, col, index) {
+      if (!isCardDraggable(zone, col, index)) {
+        e.preventDefault();
+        return;
+      }
+      hintCard = null;
+      dragSource = { zone, col, index };
+      selected = { zone, col, index };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', JSON.stringify(dragSource));
+      
+      setTimeout(() => {
+        if (dragSource) render();
+      }, 0);
+    }
+
+    function handleDragEnd() {
+      dragSource = null;
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      render();
+    }
+
+    function setupDropZone(el, targetZone, targetCol) {
+      el.ondragover = (e) => {
+        if (!dragSource) return;
+        const movingCards = getCardsFromSource(dragSource);
+        let canDrop = false;
+        if (targetZone === 'freecell') {
+          canDrop = movingCards.length === 1 && state.freeCells[targetCol] === null;
+        } else if (targetZone === 'foundation') {
+          canDrop = movingCards.length === 1 && canMoveToFoundation(movingCards[0], targetCol);
+        } else if (targetZone === 'tableau') {
+          canDrop = !(dragSource.zone === 'tableau' && dragSource.col === targetCol) && canMoveToTableau(movingCards, targetCol);
+        }
+
+        if (canDrop) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          el.classList.add('drag-over');
+        }
+      };
+
+      el.ondragleave = () => {
+        el.classList.remove('drag-over');
+      };
+
+      el.ondrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.remove('drag-over');
+        if (!dragSource) return;
+        executeMove(targetZone, targetCol, dragSource);
+      };
+    }
+
+    let touchDragState = null;
+
+    function handleTouchStart(e, zone, col, index) {
+      if (e.touches.length !== 1) return;
+      if (!isCardDraggable(zone, col, index)) return;
+
+      const touch = e.touches[0];
+      const cardEl = e.currentTarget;
+      const rect = cardEl.getBoundingClientRect();
+
+      touchDragState = {
+        source: { zone, col, index },
+        startX: touch.clientX,
+        startY: touch.clientY,
+        offsetX: touch.clientX - rect.left,
+        offsetY: touch.clientY - rect.top,
+        isDragging: false,
+        ghostEl: null
+      };
+    }
+
+    function handleTouchMove(e) {
+      if (!touchDragState) return;
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchDragState.startX;
+      const dy = touch.clientY - touchDragState.startY;
+
+      if (!touchDragState.isDragging && Math.hypot(dx, dy) > 8) {
+        touchDragState.isDragging = true;
+        hintCard = null;
+        dragSource = touchDragState.source;
+        selected = touchDragState.source;
+
+        const cards = getCardsFromSource(dragSource);
+        const ghost = document.createElement('div');
+        ghost.style.position = 'fixed';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = '1000';
+        ghost.style.width = `${document.querySelector('.playing-card').offsetWidth}px`;
+        
+        const isMobile = window.innerWidth < 640;
+        const gap = isMobile ? 22 : 30;
+        cards.forEach((c, idx) => {
+          const clone = createCardElement(c, 'ghost', 0, idx, true, false, idx * gap, false);
+          clone.style.boxShadow = '0 14px 28px rgba(0,0,0,0.65)';
+          ghost.appendChild(clone);
+        });
+
+        document.body.appendChild(ghost);
+        touchDragState.ghostEl = ghost;
+        render();
+      }
+
+      if (touchDragState.isDragging && touchDragState.ghostEl) {
+        e.preventDefault();
+        touchDragState.ghostEl.style.left = `${touch.clientX - touchDragState.offsetX}px`;
+        touchDragState.ghostEl.style.top = `${touch.clientY - touchDragState.offsetY}px`;
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (!touchDragState) return;
+
+      if (touchDragState.isDragging) {
+        if (touchDragState.ghostEl) {
+          touchDragState.ghostEl.remove();
+        }
+        const touch = e.changedTouches[0];
+        const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+        const dropZoneEl = targetEl ? targetEl.closest('[data-zone]') : null;
+
+        if (dropZoneEl) {
+          const targetZone = dropZoneEl.getAttribute('data-zone');
+          const targetCol = parseInt(dropZoneEl.getAttribute('data-col'), 10);
+          executeMove(targetZone, targetCol, touchDragState.source);
+        } else {
+          dragSource = null;
+          render();
+        }
+      }
+
+      touchDragState = null;
+    }
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    function showHint() {
+      for (let i = 0; i < 4; i++) {
+        const card = state.freeCells[i];
+        if (card) {
+          const fIdx = SUITS.indexOf(card.suit);
+          if (canMoveToFoundation(card, fIdx)) {
+            hintCard = { zone: 'freecell', col: i, index: 0 };
+            render();
+            return;
+          }
+        }
+      }
+
+      for (let c = 0; c < 8; c++) {
+        const col = state.tableau[c];
+        if (col.length > 0) {
+          const card = col[col.length - 1];
+          const fIdx = SUITS.indexOf(card.suit);
+          if (canMoveToFoundation(card, fIdx)) {
+            hintCard = { zone: 'tableau', col: c, index: col.length - 1 };
+            render();
+            return;
+          }
+        }
+      }
+
+      for (let srcC = 0; srcC < 8; srcC++) {
+        const col = state.tableau[srcC];
+        for (let i = 0; i < col.length; i++) {
+          if (isValidRun(srcC, i)) {
+            const movingCards = col.slice(i);
+            for (let targetC = 0; targetC < 8; targetC++) {
+              if (srcC === targetC) continue;
+              if (canMoveToTableau(movingCards, targetC)) {
+                if (state.tableau[targetC].length === 0 && i === 0 && state.tableau[srcC].length === movingCards.length) {
+                  continue;
+                }
+                hintCard = { zone: 'tableau', col: srcC, index: i };
+                render();
+                return;
+              }
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < 4; i++) {
+        const card = state.freeCells[i];
+        if (card) {
+          for (let targetC = 0; targetC < 8; targetC++) {
+            if (canMoveToTableau([card], targetC)) {
+              hintCard = { zone: 'freecell', col: i, index: 0 };
+              render();
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    function autoComplete() {
+      let movedAny = true;
+      let steps = 0;
+
+      const stepInterval = setInterval(() => {
+        movedAny = false;
+
+        for (let i = 0; i < 4; i++) {
+          const card = state.freeCells[i];
+          if (card) {
+            const fIdx = SUITS.indexOf(card.suit);
+            if (canMoveToFoundation(card, fIdx)) {
+              if (steps === 0) {
+                saveHistory();
+                triggerTimer();
+              }
+              state.freeCells[i] = null;
+              state.foundations[fIdx].push(card);
+              state.moves++;
+              movedAny = true;
+              steps++;
+              break;
+            }
+          }
+        }
+
+        if (!movedAny) {
+          for (let c = 0; c < 8; c++) {
+            const col = state.tableau[c];
+            if (col.length > 0) {
+              const card = col[col.length - 1];
+              const fIdx = SUITS.indexOf(card.suit);
+              if (canMoveToFoundation(card, fIdx)) {
+                if (steps === 0) {
+                  saveHistory();
+                  triggerTimer();
+                }
+                col.pop();
+                state.foundations[fIdx].push(card);
+                state.moves++;
+                movedAny = true;
+                steps++;
+                break;
+              }
+            }
+          }
+        }
+
+        selected = null;
+        dragSource = null;
+        hintCard = null;
+        render();
+
+        if (!movedAny) {
+          clearInterval(stepInterval);
+          checkWin();
+        }
+      }, 75);
+    }
+
+    function checkWin() {
+      const totalFoundationCards = state.foundations.reduce((sum, pile) => sum + pile.length, 0);
+      if (totalFoundationCards === 52) {
+        clearInterval(timerInterval);
+        playSound('win');
+        document.getElementById('win-moves').textContent = state.moves;
+        document.getElementById('win-time').textContent = document.getElementById('timer').textContent;
+        const modal = document.getElementById('win-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function getSuitColorClass(suit) {
+      const faceStyle = getAppSettings().cardCardFace || getAppSettings().cardFace || 'standard';
+      if (faceStyle === 'fourcolor') {
+        if (suit === 'hearts') return 'suit-red';
+        if (suit === 'diamonds') return 'suit-blue';
+        if (suit === 'clubs') return 'suit-green';
+        if (suit === 'spades') return 'suit-black';
+      }
+      return SUIT_COLORS[suit] === 'red' ? 'suit-red' : 'suit-black';
+    }
+
+    function createCardElement(card, zone, col, index, isSelected, isHinted, offsetTop = null, interactive = true) {
+      const el = document.createElement('div');
+      const colorClass = getSuitColorClass(card.suit);
+      const isDragging = dragSource && dragSource.zone === zone && dragSource.col === col && (zone !== 'tableau' || index >= dragSource.index);
+
+      let extraClasses = '';
+      if (isSelected) extraClasses += ' selected';
+      if (isHinted) extraClasses += ' hinted';
+      if (isDragging) extraClasses += ' dragging';
+
+      el.className = `playing-card p-1 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}`;
+
+      if (offsetTop !== null) {
+        el.style.position = 'absolute';
+        el.style.top = `${offsetTop}px`;
+        el.style.left = '0';
+        el.style.right = '0';
+        el.style.zIndex = index + 1;
+      } else {
+        el.style.width = '100%';
+        el.style.height = '100%';
+      }
+
+      el.innerHTML = `
+        <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-base pointer-events-none">
+          <span>${card.label}</span>
+          <span class="text-[10px] sm:text-sm">${card.symbol}</span>
+        </div>
+        <div class="text-center text-lg sm:text-3xl leading-none my-auto pointer-events-none">
+          ${card.symbol}
+        </div>
+        <div class="hidden sm:flex items-center justify-between leading-none font-extrabold text-base rotate-180 pointer-events-none">
+          <span>${card.label}</span>
+          <span class="text-sm">${card.symbol}</span>
+        </div>
+      `;
+
+      if (interactive) {
+        const draggable = isCardDraggable(zone, col, index);
+        el.draggable = draggable;
+        if (!draggable) {
+          el.style.cursor = 'default';
+        }
+
+        el.onclick = (e) => handleCardClick(e, zone, col, index);
+        el.ondblclick = (e) => handleCardDoubleClick(e, zone, col, index);
+        el.ondragstart = (e) => handleDragStart(e, zone, col, index);
+        el.ondragend = handleDragEnd;
+        el.ontouchstart = (e) => handleTouchStart(e, zone, col, index);
+      }
+
+      return el;
+    }
+
+    function render() {
+      document.getElementById('move-count').textContent = state.moves;
+      const movingCards = getSelectedCards();
+
+      for (let i = 0; i < 4; i++) {
+        const slot = document.getElementById(`freecell-${i}`);
+        slot.setAttribute('data-zone', 'freecell');
+        slot.setAttribute('data-col', i);
+        setupDropZone(slot, 'freecell', i);
+
+        slot.classList.remove('valid-target');
+        const card = state.freeCells[i];
+        slot.innerHTML = card ? '' : '<span class="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-white/20 pointer-events-none">Free</span>';
+        
+        if (card) {
+          const isSel = selected && selected.zone === 'freecell' && selected.col === i;
+          const isHnt = hintCard && hintCard.zone === 'freecell' && hintCard.col === i;
+          slot.appendChild(createCardElement(card, 'freecell', i, 0, isSel, isHnt));
+        } else if (movingCards.length === 1) {
+          slot.classList.add('valid-target');
+        }
+      }
+
+      const suitIcons = ['♠', '♥', '♣', '♦'];
+      for (let i = 0; i < 4; i++) {
+        const slot = document.getElementById(`foundation-${i}`);
+        slot.setAttribute('data-zone', 'foundation');
+        slot.setAttribute('data-col', i);
+        setupDropZone(slot, 'foundation', i);
+
+        slot.classList.remove('valid-target');
+        const pile = state.foundations[i];
+        const colorHint = (i === 1 || i === 3) ? 'text-red-400/25' : 'text-white/20';
+        slot.innerHTML = pile.length ? '' : `<span class="text-lg sm:text-2xl ${colorHint} pointer-events-none">${suitIcons[i]}</span>`;
+
+        if (pile.length > 0) {
+          const topCard = pile[pile.length - 1];
+          const isSel = selected && selected.zone === 'foundation' && selected.col === i;
+          const isHnt = hintCard && hintCard.zone === 'foundation' && hintCard.col === i;
+          slot.appendChild(createCardElement(topCard, 'foundation', i, pile.length - 1, isSel, isHnt));
+        }
+
+        if (movingCards.length === 1 && canMoveToFoundation(movingCards[0], i)) {
+          slot.classList.add('valid-target');
+        }
+      }
+
+      const isMobile = window.innerWidth < 640;
+      const verticalGap = isMobile ? 22 : 30;
+
+      for (let c = 0; c < 8; c++) {
+        const colEl = document.getElementById(`tableau-${c}`);
+        colEl.setAttribute('data-zone', 'tableau');
+        colEl.setAttribute('data-col', c);
+        setupDropZone(colEl, 'tableau', c);
+
+        colEl.innerHTML = '';
+        const col = state.tableau[c];
+
+        if (col.length === 0) {
+          const emptySlot = document.createElement('div');
+          emptySlot.className = 'card-slot w-full';
+          if (movingCards.length > 0 && canMoveToTableau(movingCards, c)) {
+            emptySlot.classList.add('valid-target');
+          }
+          colEl.appendChild(emptySlot);
+        } else {
+          col.forEach((card, idx) => {
+            const isSel = selected && selected.zone === 'tableau' && selected.col === c && idx >= selected.index;
+            const isHnt = hintCard && hintCard.zone === 'tableau' && hintCard.col === c && idx === hintCard.index;
+            const cardEl = createCardElement(card, 'tableau', c, idx, isSel, isHnt, idx * verticalGap);
+            colEl.appendChild(cardEl);
+          });
+          colEl.style.minHeight = `${Math.max(isMobile ? 260 : 360, col.length * verticalGap + 120)}px`;
+        }
+      }
+    }
+
+    window.addEventListener('resize', render);
+  </script>
+</body>
+</html>

@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rummy 500 - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .playing-card {
+      width: 64px;
+      height: 92px;
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      user-select: none;
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 640px) {
+      .playing-card {
+        width: 76px;
+        height: 108px;
+      }
+    }
+
+    .playing-card.playable {
+      cursor: pointer;
+    }
+    .playing-card.playable:hover {
+      transform: translateY(-8px);
+    }
+
+    .playing-card.selected {
+      transform: translateY(-14px);
+      box-shadow: 0 0 0 3px #facc15, 0 12px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .playing-card.face-down {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      cursor: default;
+    }
+
+    .playing-card.face-down::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 0.35rem;
+      border: 1px dashed rgba(255, 255, 255, 0.4);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
+    
+    <!-- NAVBAR -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-3 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Card Game Hub</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- RUMMY 500 CONTROLS & SCOREBOARD BAR -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-300 font-black shadow-lg">
+          <i class="fa-solid fa-layer-group text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-sm sm:text-lg font-extrabold tracking-wider text-white uppercase leading-none">Race to 500</h2>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold" id="table-deck-info">Single Deck • Sets & Runs • Layoffs</span>
+        </div>
+      </div>
+
+      <!-- SCORES & CONFIG -->
+      <div class="flex items-center flex-wrap gap-2 text-xs sm:text-sm font-semibold">
+        <div class="flex items-center gap-3 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10" id="scoreboard-badges">
+          <!-- Dynamically populated scores -->
+        </div>
+
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <div class="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
+            <label for="player-count-select" class="text-emerald-200/70">Players:</label>
+            <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-black/50 text-amber-300 font-bold rounded-lg px-2 py-0.5 border border-white/20 focus:outline-none cursor-pointer">
+              <option value="2">2 Players</option>
+              <option value="3" selected>3 Players</option>
+              <option value="4">4 Players</option>
+            </select>
+          </div>
+
+          <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-book-open"></i>
+            <span class="hidden sm:inline">Rules</span>
+          </button>
+
+          <button onclick="newRound()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-plus"></i>
+            <span>New Game</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN GAME TABLE -->
+    <main class="flex-1 flex flex-col gap-3 mb-8">
+      
+      <!-- BOT OPPONENTS BOX -->
+      <div id="cpu-opponents-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- CENTER ARENA: STOCK & HORIZONTAL ROW DISCARD PILE -->
+      <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center gap-3 text-center shadow-lg">
+        
+        <!-- Status Notification -->
+        <div id="status-message" class="text-xs sm:text-sm font-semibold text-white bg-emerald-950/70 border border-emerald-400/30 px-5 py-2.5 rounded-xl max-w-xl w-full shadow-lg">
+          Your turn! Draw from Stock or pick up from Discard pile.
+        </div>
+
+        <!-- Action Controls -->
+        <div id="action-controls" class="flex items-center justify-center gap-2 flex-wrap">
+          <button id="btn-draw-stock" onclick="playerDrawStock()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md transition-all">
+            Draw from Stock
+          </button>
+          <button id="btn-meld" onclick="playerMeld()" disabled class="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md transition-all">
+            Meld Selected Cards (Min 3)
+          </button>
+          <button id="btn-discard" onclick="playerDiscard()" disabled class="bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:pointer-events-none text-white font-extrabold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md transition-all">
+            Discard Selected
+          </button>
+        </div>
+
+        <!-- Piles & Horizontal Discard Row Area -->
+        <div class="flex flex-col lg:flex-row items-center justify-center gap-6 w-full my-1">
+          <!-- Stock Pile -->
+          <div class="flex flex-col items-center flex-shrink-0">
+            <span class="text-[10px] uppercase font-bold text-emerald-200/60 mb-1">Stock (<span id="stock-count">38</span>)</span>
+            <div id="stock-slot" onclick="playerDrawStock()" class="playing-card face-down cursor-pointer hover:scale-105 transition-transform shadow-lg relative flex items-center justify-center" title="Click stock to draw">
+              <div class="absolute inset-0 playing-card face-down -translate-x-1 -translate-y-1 -z-10"></div>
+            </div>
+          </div>
+
+          <div class="h-12 lg:h-24 w-px bg-white/10 hidden lg:block"></div>
+
+          <!-- Discard Pile in a Horizontal Row Going Towards the Right -->
+          <div class="flex flex-col items-center w-full max-w-3xl overflow-hidden">
+            <div class="flex justify-between items-center w-full mb-1 px-1">
+              <span class="text-[10px] uppercase font-bold text-amber-300/80">Discard Pile (First to Last &rarr; Click any to pickup all above)</span>
+              <span class="text-[10px] text-emerald-200/60" id="discard-total-count">0 cards</span>
+            </div>
+            <div id="discard-horizontal-row" class="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full min-h-[102px] p-2 bg-black/30 rounded-xl border border-white/10">
+              <!-- Dynamically rendered horizontal sequence -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PLAYER MELDS & HAND AREA -->
+      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center shadow-xl">
+        <div class="flex justify-between w-full max-w-5xl text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2 px-2">
+          <span>Your Hand (Select cards to meld, layoff, or discard)</span>
+          <span id="player-melds-label">Your Melds on Table: 0</span>
+        </div>
+        <!-- Player Melted Area -->
+        <div id="player-melds-area" class="flex items-center justify-center gap-3 mb-3 flex-wrap min-h-[40px] w-full max-w-5xl overflow-x-auto custom-scrollbar p-1"></div>
+        <!-- Player Hand -->
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2.5 sm:gap-3 min-h-[120px] w-full max-w-5xl p-2 bg-black/20 rounded-xl border border-white/10"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Rummy 500 Rules</h2>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong class="text-amber-300">Objective:</strong> Be the first player to reach 500 points across rounds by forming melds (sets and runs) and laying off cards.</p>
+        <p><strong class="text-amber-300">Melds:</strong> Valid melds require at least 3 cards and can be either <em class="text-amber-200">Sets</em> (same rank, different suits) or <em class="text-amber-200">Runs</em> (consecutive cards of the same suit).</p>
+        <p><strong class="text-amber-300">Picking Up Discards:</strong> You can pick up multiple cards from the discard pile, but you must immediately use the bottom-most picked card in a valid meld or layoff during your turn.</p>
+        <p><strong class="text-amber-300">Scoring:</strong> Melds on the table score positive points (Aces are 15, Face cards/10s are 10, others face value). Unmelded cards left in your hand at the end of a round are deducted from your score.</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- DISCARD PICKUP SELECTION MODAL -->
+  <div id="pickup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-2xl p-6 sm:p-7 max-w-lg w-full text-center border border-sky-400/40 shadow-2xl">
+      <div class="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 text-2xl mx-auto mb-3 shadow-lg">
+        <i class="fa-solid fa-hand-holding"></i>
+      </div>
+      <h3 class="text-xl sm:text-2xl font-black text-sky-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Discard Pile Pickup</h3>
+      <p class="text-xs sm:text-sm text-emerald-100/80 mt-2 mb-4">
+        You picked up <span id="pickup-count-label" class="font-bold text-amber-300">0</span> cards. Rule Check: You <span class="underline font-bold">must immediately use</span> the bottom-most card you picked up (<span id="bottom-picked-card-label" class="font-bold text-amber-300"></span>) in a valid meld or layoff this turn!
+      </p>
+      <div id="bottom-card-preview" class="flex justify-center mb-5"></div>
+      <button onclick="closePickupModal()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg text-sm">
+        Got it, Proceed to Meld/Play
+      </button>
+    </div>
+  </div>
+
+  <!-- WIN / ROUND OVER MODAL -->
+  <div id="win-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-2xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-400/40 shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 id="modal-title" class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Round Over!</h2>
+      <div id="modal-subscribers-scores" class="my-3 space-y-1.5 text-left bg-black/30 p-3 rounded-xl border border-white/10 text-xs sm:text-sm"></div>
+      <p id="game-winner-announcement" class="text-xs sm:text-sm font-extrabold text-amber-400 mt-2 mb-4"></p>
+      <button onclick="closeWinModal(); nextRoundOrReset();" id="modal-btn-next" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Next Round
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
+    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
+    const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+
+    let totalPlayers = 3;
+    let state = {
+      deck: [],
+      discardPile: [],
+      players: [], 
+      activePlayerIndex: 0, 
+      turnPhase: 'draw', 
+      selectedCardIds: [],
+      pendingMandatoryCardId: null, 
+      gameOver: false,
+      gameMatchOver: false
+    };
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function formatRank(r) {
+      return RANK_LABELS[r] || r.toString();
+    }
+
+    function getCardPoints(rank, isLowAce = false) {
+      if (rank === 1) return isLowAce ? 5 : 15;
+      if (rank >= 10) return 10;
+      return rank;
+    }
+
+    function createDeck(numDecks = 1) {
+      const deck = [];
+      let id = 0;
+      for (let d = 0; d < numDecks; d++) {
+        for (const suit of SUITS) {
+          for (let rank = 1; rank <= 13; rank++) {
+            deck.push({
+              id: id++,
+              suit,
+              rank,
+              points: getCardPoints(rank),
+              color: SUIT_COLORS[suit],
+              symbol: SUIT_SYMBOLS[suit],
+              label: formatRank(rank)
+            });
+          }
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status-message').textContent = msg;
+    }
+
+    function changePlayerCount(val) {
+      totalPlayers = parseInt(val);
+      initializeMatchScores();
+      newRound();
+    }
+
+    function initializeMatchScores() {
+      state.players = [];
+      state.players.push({
+        id: 0,
+        name: 'You',
+        isCpu: false,
+        hand: [],
+        melds: [],
+        score: 0
+      });
+      for (let i = 1; i < totalPlayers; i++) {
+        state.players.push({
+          id: i,
+          name: `Bot ${i}`,
+          isCpu: true,
+          hand: [],
+          melds: [],
+          score: 0
+        });
+      }
+    }
+
+    function newRound() {
+      if (state.players.length !== totalPlayers) {
+        initializeMatchScores();
+      } else {
+        state.players.forEach(p => {
+          p.hand = [];
+          p.melds = [];
+        });
+      }
+
+      state.deck = createDeck(1);
+      state.discardPile = [];
+      state.activePlayerIndex = 0; 
+      state.turnPhase = 'draw';
+      state.selectedCardIds = [];
+      state.pendingMandatoryCardId = null;
+      state.gameOver = false;
+      state.gameMatchOver = false;
+
+      const cardsPerPlayer = (totalPlayers === 2) ? 13 : 7;
+      document.getElementById('table-deck-info').textContent = 
+        `${totalPlayers} Players • Single Deck • ${cardsPerPlayer} Cards Each`;
+
+      for (let roundCard = 0; roundCard < cardsPerPlayer; roundCard++) {
+        for (let p = 0; p < totalPlayers; p++) {
+          if (state.deck.length > 0) {
+            state.players[p].hand.push(state.deck.pop());
+          }
+        }
+      }
+
+      sortHand(state.players[0].hand);
+
+      if (state.deck.length > 0) {
+        state.discardPile.push(state.deck.pop());
+      }
+
+      setStatus("Your turn! Draw from Stock or pick up from Discard pile.");
+      render();
+    }
+
+    function sortHand(hand) {
+      hand.sort((a, b) => a.rank - b.rank);
+    }
+
+    function toggleSelectCard(id) {
+      if (state.activePlayerIndex !== 0) return;
+      if (state.turnPhase !== 'meld' && state.turnPhase !== 'discard') return;
+      const idx = state.selectedCardIds.indexOf(id);
+      if (idx !== -1) {
+        state.selectedCardIds.splice(idx, 1);
+      } else {
+        if (state.turnPhase === 'discard') {
+          state.selectedCardIds = [id];
+        } else {
+          state.selectedCardIds.push(id);
+        }
+      }
+      render();
+    }
+
+    function playerDrawStock() {
+      if (state.activePlayerIndex !== 0 || state.turnPhase !== 'draw' || state.gameOver) return;
+      if (state.deck.length === 0) {
+        reshuffleStock();
+        if (state.deck.length === 0) {
+          endRoundDueToEmptyStock();
+          return;
+        }
+      }
+
+      const drawn = state.deck.pop();
+      state.players[0].hand.push(drawn);
+      sortHand(state.players[0].hand);
+
+      state.turnPhase = 'meld';
+      setStatus("You drew from Stock. You can lay down melds, layoff on existing melds, or click Discard.");
+      render();
+    }
+
+    function playerPickUpDiscard(clickedIndex) {
+      if (state.activePlayerIndex !== 0 || state.turnPhase !== 'draw' || state.gameOver) return;
+      if (state.discardPile.length === 0) return;
+      if (clickedIndex < 0 || clickedIndex >= state.discardPile.length) return;
+
+      const pickedCards = state.discardPile.splice(clickedIndex);
+      const bottomCard = pickedCards[0]; 
+
+      state.players[0].hand.push(...pickedCards);
+      sortHand(state.players[0].hand);
+
+      state.pendingMandatoryCardId = bottomCard.id;
+      state.turnPhase = 'meld';
+
+      document.getElementById('pickup-count-label').textContent = pickedCards.length;
+      document.getElementById('bottom-picked-card-label').textContent = `${bottomCard.label}${bottomCard.symbol}`;
+      document.getElementById('bottom-card-preview').innerHTML = createCardHTML(bottomCard);
+      
+      const modal = document.getElementById('pickup-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      setStatus(`Picked up ${pickedCards.length} cards from Discard. You MUST use ${bottomCard.label}${bottomCard.symbol} this turn!`);
+      render();
+    }
+
+    function closePickupModal() {
+      const modal = document.getElementById('pickup-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function reshuffleStock() {
+      if (state.discardPile.length <= 1) return;
+      const top = state.discardPile.pop();
+      state.deck = [...state.discardPile];
+      state.discardPile = [top];
+      for (let i = state.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
+      }
+    }
+
+    function isValidMeld(cards) {
+      if (cards.length < 3) return false;
+
+      const firstRank = cards[0].rank;
+      const allSameRank = cards.every(c => c.rank === firstRank);
+      if (allSameRank) {
+        const suits = new Set(cards.map(c => c.suit));
+        if (suits.size === cards.length) return true;
+      }
+
+      const firstSuit = cards[0].suit;
+      const allSameSuit = cards.every(c => c.suit === firstSuit);
+      if (allSameSuit) {
+        const sorted = [...cards].sort((a, b) => a.rank - b.rank);
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i].rank !== sorted[i - 1].rank + 1) return false;
+        }
+        return true;
+      }
+
+      return false;
+    }
+
+    function playerMeld() {
+      if (state.activePlayerIndex !== 0 || state.turnPhase !== 'meld' || state.selectedCardIds.length < 3) return;
+
+      const selectedCards = state.players[0].hand.filter(c => state.selectedCardIds.includes(c.id));
+      if (!isValidMeld(selectedCards)) {
+        setStatus("Selected cards do not form a valid Set or Run (minimum 3 cards).");
+        return;
+      }
+
+      if (state.pendingMandatoryCardId !== null) {
+        const usedMandatory = selectedCards.some(c => c.id === state.pendingMandatoryCardId);
+        if (usedMandatory) {
+          state.pendingMandatoryCardId = null; 
+        }
+      }
+
+      state.players[0].hand = state.players[0].hand.filter(c => !state.selectedCardIds.includes(c.id));
+      state.players[0].melds.push(selectedCards);
+      state.selectedCardIds = [];
+
+      setStatus("Meld laid down successfully! Layoff more, meld, or click Discard.");
+      render();
+
+      if (state.players[0].hand.length === 0) {
+        endRound(0);
+      }
+    }
+
+    function playerLayoffToMeld(ownerPlayerId, meldIndex) {
+      if (state.activePlayerIndex !== 0 || state.turnPhase !== 'meld' || state.selectedCardIds.length === 0) {
+        setStatus("Select card(s) from your hand first, then click a meld to layoff.");
+        return;
+      }
+
+      const selectedCards = state.players[0].hand.filter(c => state.selectedCardIds.includes(c.id));
+      const targetMeld = state.players[ownerPlayerId].melds[meldIndex];
+
+      const testMeld = [...targetMeld, ...selectedCards];
+      if (!isValidMeld(testMeld)) {
+        setStatus("Selected card(s) cannot be added to this meld while maintaining a valid Set or Run.");
+        return;
+      }
+
+      if (state.pendingMandatoryCardId !== null) {
+        if (selectedCards.some(c => c.id === state.pendingMandatoryCardId)) {
+          state.pendingMandatoryCardId = null;
+        }
+      }
+
+      state.players[0].hand = state.players[0].hand.filter(c => !state.selectedCardIds.includes(c.id));
+      state.players[ownerPlayerId].melds[meldIndex] = testMeld;
+      state.selectedCardIds = [];
+
+      setStatus("Card(s) successfully laid off onto meld!");
+      render();
+
+      if (state.players[0].hand.length === 0) {
+        endRound(0);
+      }
+    }
+
+    function playerDiscard() {
+      if (state.activePlayerIndex !== 0 || (state.turnPhase !== 'meld' && state.turnPhase !== 'discard') || state.selectedCardIds.length !== 1) return;
+
+      if (state.pendingMandatoryCardId !== null) {
+        setStatus("You must use the bottom card you picked up from the discard pile in a meld or layoff before discarding!");
+        return;
+      }
+
+      const discardId = state.selectedCardIds[0];
+      const cardIdx = state.players[0].hand.findIndex(c => c.id === discardId);
+      if (cardIdx === -1) return;
+
+      const discarded = state.players[0].hand.splice(cardIdx, 1)[0];
+      state.discardPile.push(discarded);
+      state.selectedCardIds = [];
+
+      render();
+
+      if (state.players[0].hand.length === 0) {
+        endRound(0);
+        return;
+      }
+
+      advanceToNextPlayer();
+    }
+
+    function advanceToNextPlayer() {
+      state.activePlayerIndex = (state.activePlayerIndex + 1) % totalPlayers;
+      state.selectedCardIds = [];
+      state.pendingMandatoryCardId = null;
+
+      if (state.players[state.activePlayerIndex].isCpu) {
+        state.turnPhase = 'cpu';
+        setStatus(`${state.players[state.activePlayerIndex].name} is taking its turn...`);
+        render();
+        setTimeout(cpuTurn, 1000);
+      } else {
+        state.turnPhase = 'draw';
+        setStatus("Your turn! Draw from Stock or pick up from Discard pile.");
+        render();
+      }
+    }
+
+    function cpuTurn() {
+      if (state.gameOver) return;
+      const cpu = state.players[state.activePlayerIndex];
+
+      if (state.deck.length === 0) reshuffleStock();
+      if (state.deck.length > 0) {
+        cpu.hand.push(state.deck.pop());
+      }
+
+      const counts = {};
+      cpu.hand.forEach(c => {
+        counts[c.rank] = counts[c.rank] || [];
+        counts[c.rank].push(c);
+      });
+
+      for (const rank in counts) {
+        if (counts[rank].length >= 3) {
+          const setCards = counts[rank].slice(0, 3);
+          cpu.hand = cpu.hand.filter(c => !setCards.includes(c));
+          cpu.melds.push(setCards);
+          break;
+        }
+      }
+
+      if (cpu.hand.length > 0) {
+        cpu.hand.sort((a, b) => b.points - a.points);
+        const discarded = cpu.hand.shift();
+        state.discardPile.push(discarded);
+      }
+
+      render();
+
+      if (cpu.hand.length === 0) {
+        endRound(state.activePlayerIndex);
+        return;
+      }
+
+      advanceToNextPlayer();
+    }
+
+    function endRound(winnerIndex) {
+      state.gameOver = true;
+      
+      state.players.forEach((player, idx) => {
+        let meldPts = 0;
+        let handPts = 0;
+
+        player.melds.forEach(meld => {
+          meld.forEach(c => meldPts += c.points);
+        });
+        player.hand.forEach(c => handPts += c.points);
+
+        let roundScore = meldPts - handPts;
+        player.score += Math.max(0, roundScore);
+      });
+
+      let maxScore = Math.max(...state.players.map(p => p.score));
+      if (maxScore >= 500) {
+        state.gameMatchOver = true;
+      }
+
+      const modalTitle = document.getElementById('modal-title');
+      const scoresBox = document.getElementById('modal-subscribers-scores');
+      const winnerAnnounce = document.getElementById('game-winner-announcement');
+      const nextBtn = document.getElementById('modal-btn-next');
+
+      const winnerName = state.players[winnerIndex].name;
+      modalTitle.textContent = winnerIndex === 0 ? "You Went Out!" : `${winnerName} Went Out!`;
+
+      scoresBox.innerHTML = state.players.map(p => `
+        <div class="flex justify-between items-center py-1 border-b border-white/10">
+          <span>${p.name}:</span>
+          <span class="font-bold text-amber-300 font-mono">${p.score} pts</span>
+        </div>
+      `).join('');
+
+      if (state.gameMatchOver) {
+        const overallWinner = state.players.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+        winnerAnnounce.textContent = `🏆 MATCH OVER! ${overallWinner.name} wins the Rummy 500 match with ${overallWinner.score} points!`;
+        nextBtn.textContent = "Start New Match";
+      } else {
+        winnerAnnounce.textContent = "Race to 500 points continues!";
+        nextBtn.textContent = "Next Round";
+      }
+
+      const modal = document.getElementById('win-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function endRoundDueToEmptyStock() {
+      state.gameOver = true;
+      state.players.forEach(player => {
+        let meldPts = 0;
+        let handPts = 0;
+        player.melds.forEach(m => m.forEach(c => meldPts += c.points));
+        player.hand.forEach(c => handPts += c.points);
+        player.score += Math.max(0, meldPts - handPts);
+      });
+      endRound(0);
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function nextRoundOrReset() {
+      if (state.gameMatchOver) {
+        initializeMatchScores();
+      }
+      newRound();
+    }
+
+    function createCardHTML(card, extraClasses = '') {
+      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      return `
+        <div class="playing-card p-1 sm:p-1.5 flex flex-col justify-between ${colorClass} ${extraClasses}">
+          <div class="flex items-center justify-between leading-none font-extrabold text-[11px] sm:text-xs">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+          <div class="text-center text-lg sm:text-xl leading-none my-auto">
+            ${card.symbol}
+          </div>
+          <div class="flex items-center justify-between leading-none font-extrabold text-[11px] sm:text-xs rotate-180">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      // Scoreboard badges
+      const scoreboardEl = document.getElementById('scoreboard-badges');
+      scoreboardEl.innerHTML = state.players.map(p => `
+        <div class="bg-black/30 px-2.5 py-1 rounded-xl border border-white/10 ${p.id === state.activePlayerIndex ? 'border-amber-400 bg-amber-500/10' : ''}">
+          <span class="text-emerald-200/70">${p.name}:</span> <span class="text-amber-300 font-bold font-mono">${p.score}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('stock-count').textContent = state.deck.length;
+
+      const btnDrawStock = document.getElementById('btn-draw-stock');
+      const btnMeld = document.getElementById('btn-meld');
+      const btnDiscard = document.getElementById('btn-discard');
+
+      const isUserTurn = (state.activePlayerIndex === 0 && !state.gameOver);
+      btnDrawStock.disabled = (!isUserTurn || state.turnPhase !== 'draw');
+      btnMeld.disabled = (!isUserTurn || state.turnPhase !== 'meld' || state.selectedCardIds.length < 3);
+      btnDiscard.disabled = (!isUserTurn || (state.turnPhase !== 'meld' && state.turnPhase !== 'discard') || state.selectedCardIds.length !== 1);
+
+      // Render Bot boxes cleanly at the top
+      const cpuContainer = document.getElementById('cpu-opponents-container');
+      cpuContainer.innerHTML = state.players.filter(p => p.id !== 0).map(cpu => {
+        const isCurrent = (cpu.id === state.activePlayerIndex);
+        return `
+          <div class="glass-panel p-2.5 rounded-xl border ${isCurrent ? 'border-amber-400 bg-amber-500/10' : 'border-white/10'} flex flex-col gap-2 shadow-lg">
+            <div class="flex justify-between items-center text-xs font-bold px-1">
+              <span class="${isCurrent ? 'text-amber-300' : 'text-sky-200'}">${cpu.name} ${isCurrent ? ' (Thinking...)' : ''}</span>
+              <span class="text-emerald-200/70">${cpu.hand.length} cards in hand</span>
+            </div>
+            <!-- Bot Melds -->
+            <div class="flex items-center gap-2 flex-wrap min-h-[35px]">
+              ${cpu.melds.length === 0 ? '<span class="text-[11px] text-white/30 italic px-1">No melds yet</span>' : 
+                cpu.melds.map((meld, mIdx) => `
+                  <div onclick="${isUserTurn && state.turnPhase === 'meld' && state.selectedCardIds.length > 0 ? `playerLayoffToMeld(${cpu.id}, ${mIdx})` : ''}" 
+                       class="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/10 ${isUserTurn && state.turnPhase === 'meld' && state.selectedCardIds.length > 0 ? 'cursor-pointer hover:border-amber-400 hover:scale-105 transition-transform' : ''}" 
+                       title="${isUserTurn && state.turnPhase === 'meld' && state.selectedCardIds.length > 0 ? 'Click to layoff selected cards here' : 'Opponent meld'}">
+                    ${meld.map(c => createCardHTML(c)).join('')}
+                  </div>
+                `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Discard Pile Horizontal Row (Going towards the right from first to last)
+      const discardRow = document.getElementById('discard-horizontal-row');
+      discardRow.innerHTML = '';
+      document.getElementById('discard-total-count').textContent = `${state.discardPile.length} cards`;
+
+      if (state.discardPile.length > 0) {
+        state.discardPile.forEach((card, idx) => {
+          const isTop = (idx === state.discardPile.length - 1);
+          
+          const cardContainer = document.createElement('div');
+          cardContainer.innerHTML = createCardHTML(card, isTop ? 'hover:-translate-y-1 transition-transform' : '');
+          const cardEl = cardContainer.firstElementChild;
+          
+          if (isUserTurn && state.turnPhase === 'draw') {
+            cardEl.style.cursor = 'pointer';
+            cardEl.title = `Click to pick up this card and all ${state.discardPile.length - idx} cards above it!`;
+            cardEl.onclick = () => playerPickUpDiscard(idx);
+            cardEl.classList.add('hover:ring-2', 'hover:ring-amber-400');
+          }
+
+          if (!isTop) {
+            cardEl.style.opacity = '0.9';
+          }
+          discardRow.appendChild(cardEl);
+        });
+      } else {
+        discardRow.innerHTML = `<span class="text-xs text-white/30 italic mx-auto">Discard pile is empty</span>`;
+      }
+
+      // User Melds Area
+      const playerMeldsEl = document.getElementById('player-melds-area');
+      document.getElementById('player-melds-label').textContent = `Your Melds on Table: ${state.players[0].melds.length}`;
+      playerMeldsEl.innerHTML = state.players[0].melds.length === 0 ? '<span class="text-xs text-white/40 italic">No melds laid down yet</span>' :
+        state.players[0].melds.map((meld, mIdx) => `
+          <div onclick="${isUserTurn && state.turnPhase === 'meld' && state.selectedCardIds.length > 0 ? `playerLayoffToMeld(0, ${mIdx})` : ''}" 
+               class="flex items-center gap-1 bg-black/40 p-1.5 rounded-xl border border-white/10 ${isUserTurn && state.turnPhase === 'meld' && state.selectedCardIds.length > 0 ? 'cursor-pointer hover:border-amber-400 hover:scale-105 transition-transform' : ''}"
+               title="${isUserTurn && state.turnPhase === 'meld' && state.selectedCardIds.length > 0 ? 'Click to layoff selected cards here' : 'Your meld'}">
+            ${meld.map(c => createCardHTML(c)).join('')}
+          </div>
+        `).join('');
+
+      // User Hand Rendering
+      const playerHandEl = document.getElementById('player-hand');
+      const userHandCards = state.players[0].hand;
+      
+      if (!userHandCards || userHandCards.length === 0) {
+        playerHandEl.innerHTML = `<span class="text-xs text-amber-300 italic mx-auto">No cards in hand</span>`;
+      } else {
+        playerHandEl.innerHTML = userHandCards.map(c => {
+          const isSel = state.selectedCardIds.includes(c.id);
+          const isMandatory = (c.id === state.pendingMandatoryCardId);
+          const clickable = (isUserTurn && (state.turnPhase === 'meld' || state.turnPhase === 'discard'));
+          return `
+            <div onclick="${clickable ? `toggleSelectCard(${c.id})` : ''}" class="relative">
+              ${isMandatory ? '<span class="absolute -top-2 -right-2 z-20 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full shadow-md animate-bounce" title="Mandatory card from discard pickup!">MANDATORY</span>' : ''}
+              ${createCardHTML(c, `${clickable ? 'playable' : 'disabled-card'} ${isSel ? 'selected' : ''} ${isMandatory ? 'ring-2 ring-amber-400' : ''}`)}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Initialize & start match
+    initializeMatchScores();
+    newRound();
+  </script>
+</body>
+</html>

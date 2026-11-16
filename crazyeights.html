@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Crazy Eights - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .playing-card {
+      width: 68px;
+      height: 96px;
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+      border-radius: 0.65rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      user-select: none;
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease, opacity 0.16s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 640px) {
+      .playing-card {
+        width: 82px;
+        height: 116px;
+      }
+    }
+
+    .playing-card.playable {
+      cursor: pointer;
+    }
+    .playing-card.playable:hover {
+      transform: translateY(-8px);
+    }
+
+    .playing-card.disabled-card {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .playing-card.face-down {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      cursor: default;
+    }
+
+    .playing-card.face-down::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 0.4rem;
+      border: 1px dashed rgba(255, 255, 255, 0.4);
+    }
+
+    .card-slot {
+      width: 68px;
+      height: 96px;
+      border-radius: 0.65rem;
+      border: 2px dashed rgba(255, 255, 255, 0.22);
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (min-width: 640px) {
+      .card-slot {
+        width: 82px;
+        height: 116px;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
+    
+    <!-- TOP SITE BANNER (MATCHES HOME PAGE) -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Card Game Hub</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- CRAZY EIGHTS CONTROLS BAR -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-3 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-400/30 flex items-center justify-center text-rose-300 font-black shadow-lg">
+          <i class="fa-solid fa-infinity text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-sm sm:text-lg font-extrabold tracking-wider text-white uppercase leading-none">Crazy Eights</h2>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Match rank or suit • Eights are wild</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="newGame()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-rotate"></i>
+          <span>New Game</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- MAIN GAME TABLE -->
+    <main class="flex-1 flex flex-col justify-between gap-4 mb-8">
+      
+      <!-- CPU HAND AREA -->
+      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
+        <div class="text-xs font-bold uppercase tracking-wider text-sky-200/70 mb-2">
+          CPU Opponent (<span id="cpu-card-count">5</span> cards)
+        </div>
+        <div id="cpu-hand" class="flex items-center justify-center gap-1.5 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+      </div>
+
+      <!-- CENTER ARENA: STOCK & DISCARD PILE -->
+      <div class="glass-panel rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center">
+        
+        <!-- Status Notification -->
+        <div id="status-message" class="text-xs sm:text-sm font-semibold text-white bg-emerald-950/70 border border-emerald-400/30 px-5 py-2.5 rounded-xl max-w-md w-full shadow-lg">
+          Your turn! Match the top card's rank or suit, or play an 8.
+        </div>
+
+        <!-- Active Wild Suit Indicator -->
+        <div id="active-suit-indicator" class="hidden text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full">
+          Active Wild Suit: <span id="wild-suit-name" class="uppercase">Spades</span>
+        </div>
+
+        <div class="flex items-center justify-center gap-6 sm:gap-10 my-2">
+          <!-- Stock Pile -->
+          <div class="flex flex-col items-center">
+            <span class="text-[10px] uppercase font-bold text-emerald-200/60 mb-1">Stock (<span id="stock-count">34</span>)</span>
+            <div id="stock-pile" onclick="playerDrawCard()" class="card-slot face-down cursor-pointer hover:border-white/60 transition-all shadow-lg flex items-center justify-center" title="Click to draw card">
+              <i class="fa-solid fa-clone text-white/30 text-xl"></i>
+            </div>
+          </div>
+
+          <!-- Discard Pile -->
+          <div class="flex flex-col items-center">
+            <span class="text-[10px] uppercase font-bold text-amber-300/80 mb-1">Discard Pile</span>
+            <div id="discard-slot" class="card-slot flex items-center justify-center">
+              <!-- Top discard card rendered here -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PLAYER HAND AREA -->
+      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
+          Your Hand (<span id="player-card-count">5</span> cards)
+        </div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- WILD SUIT SELECTION MODAL -->
+  <div id="suit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center border border-amber-400/40 shadow-2xl">
+      <h3 class="text-xl font-black text-amber-300 uppercase tracking-wide mb-2" style="font-family: 'Cinzel', serif;">Crazy Eight!</h3>
+      <p class="text-xs text-emerald-100/80 mb-6">Choose a new suit for the game:</p>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="selectWildSuit('spades')" class="p-3.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/20 text-white font-bold flex items-center justify-center gap-2 transition-all">
+          <span class="text-xl">♠</span> Spades
+        </button>
+        <button onclick="selectWildSuit('hearts')" class="p-3.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/20 text-red-500 font-bold flex items-center justify-center gap-2 transition-all">
+          <span class="text-xl">♥</span> Hearts
+        </button>
+        <button onclick="selectWildSuit('clubs')" class="p-3.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/20 text-white font-bold flex items-center justify-center gap-2 transition-all">
+          <span class="text-xl">♣</span> Clubs
+        </button>
+        <button onclick="selectWildSuit('diamonds')" class="p-3.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/20 text-red-500 font-bold flex items-center justify-center gap-2 transition-all">
+          <span class="text-xl">♦</span> Diamonds
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN / GAME OVER MODAL -->
+  <div id="win-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-400/40 shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 id="win-title" class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">You Won!</h2>
+      <p id="win-subtitle" class="text-sm text-emerald-100/80 mt-2">You successfully shed all your cards first.</p>
+      <button onclick="closeWinModal(); newGame();" class="mt-6 w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Play Again
+      </button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <script>
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
+    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
+    const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+
+    let state = {
+      deck: [],
+      discardPile: [],
+      playerHand: [],
+      cpuHand: [],
+      turn: 'player', // 'player' or 'cpu'
+      activeSuit: null, // set when an 8 is played
+      gameOver: false
+    };
+
+    function formatRank(r) {
+      return RANK_LABELS[r] || r.toString();
+    }
+
+    function createDeck() {
+      const deck = [];
+      let id = 0;
+      for (const suit of SUITS) {
+        for (let rank = 1; rank <= 13; rank++) {
+          deck.push({
+            id: id++,
+            suit,
+            rank,
+            color: SUIT_COLORS[suit],
+            symbol: SUIT_SYMBOLS[suit],
+            label: formatRank(rank)
+          });
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status-message').textContent = msg;
+    }
+
+    function newGame() {
+      state.deck = createDeck();
+      state.discardPile = [];
+      state.playerHand = [];
+      state.cpuHand = [];
+      state.turn = 'player';
+      state.activeSuit = null;
+      state.gameOver = false;
+
+      // Deal 5 cards each (or 7 for standard, 5 keeps mobile view tidy)
+      for (let i = 0; i < 5; i++) {
+        state.playerHand.push(state.deck.pop());
+        state.cpuHand.push(state.deck.pop());
+      }
+
+      // Flip initial top card (ensure it's not an 8 to start)
+      let initialTop = state.deck.pop();
+      while (initialTop.rank === 8) {
+        state.deck.unshift(initialTop);
+        initialTop = state.deck.pop();
+      }
+      state.discardPile.push(initialTop);
+
+      setStatus("Your turn! Match the top card's rank or suit, or play an 8.");
+      render();
+    }
+
+    function isCardPlayable(card) {
+      const topCard = state.discardPile[state.discardPile.length - 1];
+      if (card.rank === 8) return true;
+      if (state.activeSuit) {
+        return card.suit === state.activeSuit;
+      }
+      return card.rank === topCard.rank || card.suit === topCard.suit;
+    }
+
+    function playerPlayCard(idx) {
+      if (state.turn !== 'player' || state.gameOver) return;
+      const card = state.playerHand[idx];
+
+      if (!isCardPlayable(card)) {
+        setStatus("That card doesn't match the rank, suit, or active wild suit!");
+        return;
+      }
+
+      state.playerHand.splice(idx, 1);
+      state.discardPile.push(card);
+      state.activeSuit = null; // clear previous wild suit if matched normally
+
+      render();
+
+      if (state.playerHand.length === 0) {
+        endGame('player');
+        return;
+      }
+
+      if (card.rank === 8) {
+        // Open modal to choose wild suit
+        document.getElementById('suit-modal').classList.remove('hidden');
+        document.getElementById('suit-modal').classList.add('flex');
+        setStatus("You played an 8! Choose a new suit.");
+        return;
+      }
+
+      // Switch to CPU turn
+      state.turn = 'cpu';
+      setStatus("CPU is taking its turn...");
+      setTimeout(cpuTurn, 850);
+    }
+
+    function selectWildSuit(suit) {
+      state.activeSuit = suit;
+      document.getElementById('suit-modal').classList.add('hidden');
+      document.getElementById('suit-modal').classList.remove('flex');
+      setStatus(`You changed the active suit to ${suit.toUpperCase()}! CPU's turn.`);
+      render();
+
+      state.turn = 'cpu';
+      setTimeout(cpuTurn, 850);
+    }
+
+    function playerDrawCard() {
+      if (state.turn !== 'player' || state.gameOver) return;
+      
+      // Check if player has any playable card
+      const hasPlayable = state.playerHand.some(c => isCardPlayable(c));
+      if (hasPlayable) {
+        setStatus("You have playable cards in your hand! You cannot draw.");
+        return;
+      }
+
+      if (state.deck.length === 0) {
+        reshuffleDeck();
+        if (state.deck.length === 0) {
+          setStatus("Stock pile is empty! Turn skipped.");
+          state.turn = 'cpu';
+          setTimeout(cpuTurn, 850);
+          return;
+        }
+      }
+
+      const drawn = state.deck.pop();
+      state.playerHand.push(drawn);
+      setStatus(`You drew ${drawn.label}${drawn.symbol}.`);
+      render();
+
+      // If drawn card is playable, let player play or click again; otherwise auto-pass or let them play if valid
+      if (!isCardPlayable(drawn)) {
+        setStatus(`Drawn ${drawn.label}${drawn.symbol} is not playable. Turn passed to CPU.`);
+        state.turn = 'cpu';
+        setTimeout(cpuTurn, 850);
+      }
+    }
+
+    function reshuffleDeck() {
+      if (state.discardPile.length <= 1) return;
+      const topCard = state.discardPile.pop();
+      state.deck = [...state.discardPile];
+      state.discardPile = [topCard];
+      // Shuffle deck
+      for (let i = state.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
+      }
+    }
+
+    function cpuTurn() {
+      if (state.gameOver) return;
+
+      // Find all playable cards for CPU
+      const playableIndices = [];
+      state.cpuHand.forEach((c, idx) => {
+        const topCard = state.discardPile[state.discardPile.length - 1];
+        let playable = false;
+        if (c.rank === 8) playable = true;
+        else if (state.activeSuit) playable = (c.suit === state.activeSuit);
+        else playable = (c.rank === topCard.rank || c.suit === topCard.suit);
+
+        if (playable) playableIndices.push(idx);
+      });
+
+      if (playableIndices.length > 0) {
+        // Pick first playable card (prioritize non-8s first if possible)
+        let chosenIdx = playableIndices.find(idx => state.cpuHand[idx].rank !== 8);
+        if (chosenIdx === undefined) chosenIdx = playableIndices[0];
+
+        const card = state.cpuHand.splice(chosenIdx, 1)[0];
+        state.discardPile.push(card);
+        state.activeSuit = null;
+
+        if (state.cpuHand.length === 0) {
+          render();
+          endGame('cpu');
+          return;
+        }
+
+        if (card.rank === 8) {
+          // CPU picks suit it has the most of
+          const suitCounts = { spades: 0, hearts: 0, clubs: 0, diamonds: 0 };
+          state.cpuHand.forEach(c => suitCounts[c.suit]++);
+          let bestSuit = 'spades';
+          let maxCount = -1;
+          for (const s of SUITS) {
+            if (suitCounts[s] > maxCount) {
+              maxCount = suitCounts[s];
+              bestSuit = s;
+            }
+          }
+          state.activeSuit = bestSuit;
+          setStatus(`CPU played an 8 and called ${bestSuit.toUpperCase()}! Your turn.`);
+        } else {
+          setStatus(`CPU played ${card.label}${card.symbol}. Your turn!`);
+        }
+
+        state.turn = 'player';
+        render();
+      } else {
+        // CPU must draw until playable or stock empty
+        if (state.deck.length === 0) reshuffleDeck();
+        if (state.deck.length > 0) {
+          const drawn = state.deck.pop();
+          state.cpuHand.push(drawn);
+          
+          // Check if drawn card is playable
+          const topCard = state.discardPile[state.discardPile.length - 1];
+          let playable = (drawn.rank === 8) || (state.activeSuit ? drawn.suit === state.activeSuit : (drawn.rank === topCard.rank || drawn.suit === topCard.suit));
+
+          if (playable) {
+            state.cpuHand.pop();
+            state.discardPile.push(drawn);
+            state.activeSuit = null;
+            if (drawn.rank === 8) {
+              state.activeSuit = 'spades';
+            }
+            setStatus(`CPU drew and played ${drawn.label}${drawn.symbol}. Your turn!`);
+          } else {
+            setStatus(`CPU drew a card and passed. Your turn!`);
+          }
+        } else {
+          setStatus(`CPU had no moves and stock was empty. Your turn!`);
+        }
+
+        state.turn = 'player';
+        render();
+      }
+    }
+
+    function endGame(winner) {
+      state.gameOver = true;
+      const title = document.getElementById('win-title');
+      const subtitle = document.getElementById('win-subtitle');
+      if (winner === 'player') {
+        title.textContent = "You Won!";
+        subtitle.textContent = "Congratulations! You successfully shed all your cards first.";
+      } else {
+        title.textContent = "CPU Won!";
+        subtitle.textContent = "The CPU got rid of all its cards first. Better luck next time!";
+      }
+
+      const modal = document.getElementById('win-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function createCardHTML(card, extraClasses = '') {
+      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      return `
+        <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}">
+          <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+          <div class="text-center text-xl sm:text-2xl leading-none my-auto">
+            ${card.symbol}
+          </div>
+          <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm rotate-180">
+            <span>${card.label}</span>
+            <span>${card.symbol}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      document.getElementById('stock-count').textContent = state.deck.length;
+      document.getElementById('player-card-count').textContent = state.playerHand.length;
+      document.getElementById('cpu-card-count').textContent = state.cpuHand.length;
+
+      // Active suit indicator
+      const suitIndicator = document.getElementById('active-suit-indicator');
+      if (state.activeSuit) {
+        suitIndicator.classList.remove('hidden');
+        document.getElementById('wild-suit-name').textContent = `${state.activeSuit} ${SUIT_SYMBOLS[state.activeSuit]}`;
+      } else {
+        suitIndicator.classList.add('hidden');
+      }
+
+      // CPU Hand
+      const cpuHandEl = document.getElementById('cpu-hand');
+      cpuHandEl.innerHTML = state.cpuHand.map(() => `<div class="playing-card face-down"></div>`).join('');
+
+      // Discard Top Card
+      const discardSlot = document.getElementById('discard-slot');
+      const topCard = state.discardPile[state.discardPile.length - 1];
+      discardSlot.innerHTML = createCardHTML(topCard);
+
+      // Player Hand
+      const playerHandEl = document.getElementById('player-hand');
+      playerHandEl.innerHTML = state.playerHand.map((c, idx) => {
+        const playable = (state.turn === 'player' && isCardPlayable(c) && !state.gameOver);
+        return `<div onclick="playerPlayCard(${idx})">${createCardHTML(c, playable ? 'playable' : 'disabled-card')}</div>`;
+      }).join('');
+    }
+
+    newGame();
+  </script>
+</body>
+</html>

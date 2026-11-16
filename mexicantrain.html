@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mexican Train Dominoes - (Website Name)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
+
+    :root {
+      --felt-dark: #052e16;
+      --felt-mid: #064e3b;
+      --felt-light: #047857;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--felt-light) 0%, var(--felt-mid) 60%, var(--felt-dark) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .felt-texture {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+      background-size: 6px 6px, 10px 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .glass-panel {
+      background: rgba(4, 28, 16, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Domino Tile Styling */
+    .domino-tile {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #0f172a;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .domino-tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      border-color: #fbbf24;
+    }
+
+    .domino-tile.selected {
+      border-color: #fbbf24;
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
+      transform: translateY(-5px);
+    }
+
+    .domino-horizontal {
+      width: 64px;
+      height: 34px;
+      flex-direction: row;
+      gap: 4px;
+    }
+
+    .hub-circle {
+      background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+      border: 4px solid #fbbf24;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen select-none">
+  <!-- Visual Felt Textures -->
+  <div class="felt-texture"></div>
+  <div class="vignette"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-4 py-4 sm:py-6">
+    
+    <!-- TOP NAVBAR (Home Page Banner - Clickable to Home) -->
+    <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
+      <a href="index.html" class="flex items-center gap-3 group cursor-pointer">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-crown text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-wider text-amber-300 uppercase leading-none group-hover:text-amber-200 transition-colors" style="font-family: 'Cinzel', serif;">(Website Name)</h1>
+          <span class="text-[10px] sm:text-xs text-emerald-200/70 font-semibold">Classic Game Hub</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="rules.html" class="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-amber-400/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Rules &amp; Strategy</span>
+        </a>
+        <button id="openSettingsBtn" type="button" aria-label="Settings" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-white/15 transition-all flex items-center justify-center hover:text-amber-300 cursor-pointer">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- SECONDARY GAME SUB-BANNER -->
+    <div class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-white/15">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-base">
+          <i class="fa-solid fa-train"></i>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Mexican Train Dominoes</h2>
+          <span id="sub-status-text" class="text-xs text-emerald-200/80 font-medium">Your Turn (Play on your train or Mexican train)</span>
+        </div>
+      </div>
+      
+      <!-- Sub-banner Action Buttons (Hint, Rules, New Game) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="hint-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-lightbulb text-amber-400"></i>
+          <span>Hint</span>
+        </button>
+        <button id="rules-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-book"></i>
+          <span>Rules</span>
+        </button>
+        <button id="new-game-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-plus"></i>
+          <span>New Game</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME CONTAINER -->
+    <main class="flex-1 flex flex-col gap-6 pb-12">
+      
+      <!-- BOARD PLAY AREA -->
+      <div class="glass-panel rounded-3xl p-6 border border-white/15 flex flex-col gap-8 shadow-2xl relative min-h-[420px] justify-between">
+        
+        <!-- CENTRAL HUB & PUBLIC TRAINS -->
+        <div class="flex flex-col items-center justify-center gap-6 my-auto">
+          <!-- Central Engine Hub -->
+          <div class="hub-circle w-20 h-20 rounded-full flex flex-col items-center justify-center text-amber-300 font-black shadow-2xl">
+            <span class="text-[10px] uppercase text-emerald-200/70 tracking-wider">Engine</span>
+            <span id="hub-engine" class="text-2xl">12</span>
+          </div>
+
+          <!-- Trains Display Area -->
+          <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Player Train -->
+            <div class="glass-panel rounded-2xl p-4 border border-blue-400/30 flex flex-col gap-2">
+              <div class="flex justify-between items-center text-xs font-bold text-blue-300">
+                <span><i class="fa-solid fa-train"></i> Your Train (Open)</span>
+                <button id="play-player-train" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg text-[10px] cursor-pointer transition-all">Play Here</button>
+              </div>
+              <div id="player-train-track" class="flex flex-wrap gap-2 items-center min-h-[50px] p-2 bg-black/20 rounded-xl overflow-x-auto">
+                <span class="text-xs text-emerald-200/40 italic">Empty train</span>
+              </div>
+            </div>
+
+            <!-- Mexican Train -->
+            <div class="glass-panel rounded-2xl p-4 border border-amber-400/30 flex flex-col gap-2">
+              <div class="flex justify-between items-center text-xs font-bold text-amber-300">
+                <span><i class="fa-solid fa-train-subway"></i> Mexican Train (Open)</span>
+                <button id="play-mexican-train" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all">Play Here</button>
+              </div>
+              <div id="mexican-train-track" class="flex flex-wrap gap-2 items-center min-h-[50px] p-2 bg-black/20 rounded-xl overflow-x-auto">
+                <span class="text-xs text-emerald-200/40 italic">Empty train</span>
+              </div>
+            </div>
+
+            <!-- AI Train -->
+            <div class="glass-panel rounded-2xl p-4 border border-rose-400/30 flex flex-col gap-2">
+              <div class="flex justify-between items-center text-xs font-bold text-rose-300">
+                <span><i class="fa-solid fa-train"></i> AI Train <span id="ai-train-status" class="text-[10px] text-emerald-300">(Closed)</span></span>
+                <button id="play-ai-train" class="bg-rose-600/50 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg text-[10px] cursor-pointer transition-all">Play Here</button>
+              </div>
+              <div id="ai-train-track" class="flex flex-wrap gap-2 items-center min-h-[50px] p-2 bg-black/20 rounded-xl overflow-x-auto">
+                <span class="text-xs text-emerald-200/40 italic">Empty train</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PLAYER HAND -->
+        <div class="flex flex-col gap-3 pt-4 border-t border-white/15">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+              <i class="fa-solid fa-hand-holding text-amber-400"></i>
+              <span>Your Hand (<span id="hand-count">0</span> tiles)</span>
+            </h3>
+            <button id="draw-btn" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3.5 py-1.5 rounded-xl text-xs transition-all border border-white/15 flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-plus"></i>
+              <span>Draw Tile</span>
+            </button>
+          </div>
+          <div id="player-hand" class="flex flex-wrap gap-3 items-center min-h-[80px] p-3 bg-black/30 rounded-2xl border border-white/10 overflow-x-auto"></div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-crown text-amber-400"></i>
+        <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="privacy.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-amber-400/80"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="terms.html" class="hover:text-amber-300 transition-colors font-medium">Terms of Service</a>
+        <a href="contact.html" class="hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-envelope text-amber-400/80"></i>
+          <span>Contact Us</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-white/20 shadow-2xl flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-white/15 pb-3">
+        <h3 class="text-lg font-bold text-amber-300 uppercase" style="font-family: 'Cinzel', serif;">Mexican Train Rules</h3>
+        <button id="close-rules" class="text-emerald-200 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong>Objective:</strong> Be the first player to empty your hand of all domino tiles by playing them onto valid train tracks.</p>
+        <p><strong>The Engine:</strong> The game starts from a central double tile (the Engine, e.g., Double-12).</p>
+        <p><strong>Valid Plays:</strong> 
+          <br>• You can play on your own personal train.
+          <br>• You can play on the shared <strong>Mexican Train</strong> at any time.
+          <br>• You can play on an opponent's train only if their train marker is up (marked as Open).
+        </p>
+        <p><strong>Drawing:</strong> If you cannot make a valid move from your hand, you must draw a tile. If you still cannot play, your train becomes marked open for others, and your turn ends.</p>
+      </div>
+      <button id="close-rules-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer">Got It!</button>
+    </div>
+  </div>
+
+  <!-- SHARED GLOBAL SETTINGS SCRIPT -->
+  <script src="settings.js"></script>
+
+  <!-- MEXICAN TRAIN GAME LOGIC -->
+  <script>
+    let playerHand = [];
+    let aiHand = [];
+    let playerTrain = [];
+    let mexicanTrain = [];
+    let aiTrain = [];
+    let engineValue = 12;
+    let selectedTileIndex = null;
+    let turn = 'player';
+    let aiTrainOpen = false;
+    let gameOver = false;
+
+    const hubEngineEl = document.getElementById('hub-engine');
+    const playerHandEl = document.getElementById('player-hand');
+    const handCountEl = document.getElementById('hand-count');
+    const playerTrackEl = document.getElementById('player-train-track');
+    const mexicanTrackEl = document.getElementById('mexican-train-track');
+    const aiTrackEl = document.getElementById('ai-train-track');
+    const aiStatusEl = document.getElementById('ai-train-status');
+    const subStatusText = document.getElementById('sub-status-text');
+
+    function initGame() {
+      let allTiles = [];
+      for (let i = 0; i <= 12; i++) {
+        for (let j = i; j <= 12; j++) {
+          allTiles.push({ left: i, right: j });
+        }
+      }
+      allTiles.sort(() => Math.random() - 0.5);
+
+      playerHand = allTiles.splice(0, 12);
+      aiHand = allTiles.splice(0, 12);
+      playerTrain = [];
+      mexicanTrain = [];
+      aiTrain = [];
+      selectedTileIndex = null;
+      aiTrainOpen = false;
+      gameOver = false;
+      turn = 'player';
+
+      hubEngineEl.textContent = engineValue;
+      render();
+    }
+
+    function getTrainEnd(train) {
+      if (train.length === 0) return engineValue;
+      const last = train[train.length - 1];
+      return last.right;
+    }
+
+    function render() {
+      playerHandEl.innerHTML = '';
+      if (playerHand.length === 0) {
+        playerHandEl.innerHTML = '<span class="text-xs text-emerald-200/60 italic">Your hand is empty! You win!</span>';
+      } else {
+        playerHand.forEach((tile, index) => {
+          const tileDiv = document.createElement('div');
+          tileDiv.className = `domino-tile domino-horizontal ${selectedTileIndex === index ? 'selected' : ''}`;
+          tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+          tileDiv.addEventListener('click', () => {
+            selectedTileIndex = selectedTileIndex === index ? null : index;
+            render();
+          });
+          playerHandEl.appendChild(tileDiv);
+        });
+      }
+      handCountEl.textContent = playerHand.length;
+
+      renderTrack(playerTrackEl, playerTrain);
+      renderTrack(mexicanTrackEl, mexicanTrain);
+      renderTrack(aiTrackEl, aiTrain);
+
+      aiStatusEl.textContent = aiTrainOpen ? "(Open)" : "(Closed)";
+      aiStatusEl.className = aiTrainOpen ? "text-[10px] text-amber-300 font-bold" : "text-[10px] text-emerald-300";
+
+      if (gameOver) return;
+
+      if (turn === 'player') {
+        subStatusText.textContent = selectedTileIndex !== null 
+          ? "Tile selected! Click 'Play Here' on your train, Mexican train, or AI train (if open)."
+          : "Your Turn: Select a tile from your hand, then choose where to play.";
+      } else {
+        subStatusText.textContent = "AI is thinking...";
+        setTimeout(makeAIMove, 800);
+      }
+    }
+
+    function renderTrack(container, train) {
+      container.innerHTML = '';
+      if (train.length === 0) {
+        container.innerHTML = '<span class="text-xs text-emerald-200/40 italic">Empty train</span>';
+        return;
+      }
+      train.forEach(tile => {
+        const tileDiv = document.createElement('div');
+        tileDiv.className = 'domino-tile domino-horizontal text-xs';
+        tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+        container.appendChild(tileDiv);
+      });
+    }
+
+    function playTile(trainName) {
+      if (turn !== 'player' || selectedTileIndex === null || gameOver) return;
+
+      const tile = playerHand[selectedTileIndex];
+      let targetTrain;
+
+      if (trainName === 'player') targetTrain = playerTrain;
+      else if (trainName === 'mexican') targetTrain = mexicanTrain;
+      else if (trainName === 'ai') {
+        if (!aiTrainOpen) {
+          alert("AI's train is currently closed! You can only play on your train or the Mexican train.");
+          return;
+        }
+        targetTrain = aiTrain;
+      }
+
+      const valid = isValidPlay(tile, targetTrain);
+      if (valid) {
+        const endVal = getTrainEnd(targetTrain);
+        let playedTile = { ...tile };
+        if (playedTile.left !== endVal && playedTile.right === endVal) {
+          playedTile.right = tile.left;
+          playedTile.left = tile.right;
+        }
+
+        targetTrain.push(playedTile);
+        playerHand.splice(selectedTileIndex, 1);
+        selectedTileIndex = null;
+
+        if (playerHand.length === 0) {
+          subStatusText.textContent = "Congratulations! You emptied your hand and won the game!";
+          gameOver = true;
+          render();
+          return;
+        }
+
+        turn = 'ai';
+        render();
+      } else {
+        alert("Invalid move! The tile number must match the open end of the train.");
+      }
+    }
+
+    function isValidPlay(tile, train) {
+      const endVal = getTrainEnd(train);
+      return tile.left === endVal || tile.right === endVal;
+    }
+
+    function makeAIMove() {
+      if (gameOver) return;
+
+      let played = false;
+      for (let i = 0; i < aiHand.length; i++) {
+        const tile = aiHand[i];
+        if (isValidPlay(tile, aiTrain)) {
+          let playedTile = { ...tile };
+          const endVal = getTrainEnd(aiTrain);
+          if (playedTile.left !== endVal && playedTile.right === endVal) {
+            playedTile.right = tile.left;
+            playedTile.left = tile.right;
+          }
+          aiTrain.push(playedTile);
+          aiHand.splice(i, 1);
+          aiTrainOpen = false;
+          played = true;
+          break;
+        } else if (isValidPlay(tile, mexicanTrain)) {
+          let playedTile = { ...tile };
+          const endVal = getTrainEnd(mexicanTrain);
+          if (playedTile.left !== endVal && playedTile.right === endVal) {
+            playedTile.right = tile.left;
+            playedTile.left = tile.right;
+          }
+          mexicanTrain.push(playedTile);
+          aiHand.splice(i, 1);
+          played = true;
+          break;
+        }
+      }
+
+      if (!played) {
+        aiTrainOpen = true;
+        aiHand.push({ left: Math.floor(Math.random() * 13), right: Math.floor(Math.random() * 13) });
+      }
+
+      if (aiHand.length === 0) {
+        subStatusText.textContent = "AI emptied its hand! AI wins!";
+        gameOver = true;
+        render();
+        return;
+      }
+
+      turn = 'player';
+      render();
+    }
+
+    // Event Listeners
+    document.getElementById('play-player-train').addEventListener('click', () => playTile('player'));
+    document.getElementById('play-mexican-train').addEventListener('click', () => playTile('mexican'));
+    document.getElementById('play-ai-train').addEventListener('click', () => playTile('ai'));
+
+    document.getElementById('draw-btn').addEventListener('click', () => {
+      if (turn !== 'player' || gameOver) return;
+      playerHand.push({ left: Math.floor(Math.random() * 13), right: Math.floor(Math.random() * 13) });
+      subStatusText.textContent = "You drew a tile. Your train is now marked open for opponents.";
+      render();
+    });
+
+    document.getElementById('hint-btn').addEventListener('click', () => {
+      for (let i = 0; i < playerHand.length; i++) {
+        if (isValidPlay(playerHand[i], playerTrain) || isValidPlay(playerHand[i], mexicanTrain)) {
+          selectedTileIndex = i;
+          render();
+          break;
+        }
+      }
+    });
+
+    document.getElementById('new-game-btn').addEventListener('click', initGame);
+
+    // Rules Modal controls
+    const rulesModal = document.getElementById('rules-modal');
+    document.getElementById('rules-btn').addEventListener('click', () => rulesModal.classList.remove('hidden'));
+    document.getElementById('close-rules').addEventListener('click', () => rulesModal.classList.add('hidden'));
+    document.getElementById('close-rules-btn').addEventListener('click', () => rulesModal.classList.add('hidden'));
+
+    initGame();
+  </script>
+</body>
+</html>
