@@ -53,6 +53,15 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* Solid Hand Style Matching Dominoes, Cribbage, Crazy Eights, and Go Fish */
+    .solid-hand {
+      background: var(--felt-mid);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
     .playing-card {
       width: 68px;
       height: 96px;
@@ -80,10 +89,22 @@
       box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
     }
 
+    /* Dynamic Card Back Colors */
     .playing-card.face-down {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
       border: 2px solid rgba(255, 255, 255, 0.28);
       cursor: pointer;
+    }
+    .playing-card.face-down.deck-red {
+      background: linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #7f1d1d 100%) !important;
+    }
+    .playing-card.face-down.deck-blue {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%) !important;
+    }
+    .playing-card.face-down.deck-green {
+      background: linear-gradient(135deg, #065f46 0%, #047857 50%, #064e3b 100%) !important;
+    }
+    .playing-card.face-down.deck-gold {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #92400e 100%) !important;
     }
 
     .playing-card.face-down::before {
@@ -110,6 +131,16 @@
     .playing-card.face-down.sideways::before {
       inset: 3px;
       border-radius: 0.3rem;
+    }
+
+    /* High Contrast / Dark Pips Mode Styling (Front Faces Only) */
+    html.high-contrast-cards .playing-card:not(.face-down) {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    html.high-contrast-cards .playing-card:not(.face-down).text-red-600 {
+      color: #f43f5e !important;
     }
   </style>
 </head>
@@ -163,9 +194,9 @@
         <div class="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
           <label for="player-count-select" class="text-emerald-200/70">Players:</label>
           <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-black/50 text-amber-300 font-bold rounded-lg px-2 py-0.5 border border-white/20 focus:outline-none cursor-pointer">
-            <option value="2">1 Player</option>
-            <option value="3">2 Players</option>
-            <option value="4">3 Players</option>
+            <option value="2">2 Players (1 Bot)</option>
+            <option value="3">3 Players (2 Bots)</option>
+            <option value="4">4 Players (3 Bots)</option>
           </select>
         </div>
 
@@ -211,12 +242,15 @@
 
       </div>
 
-      <!-- PLAYER HAND AREA -->
-      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-4xl mx-auto w-full">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
-          Your Hand
+      <!-- PLAYER HAND AREA (UPDATED TO MATCH STANDARD FELT HAND CONTAINER) -->
+      <div id="seat-player" class="player-seat solid-hand rounded-3xl p-4 flex flex-col gap-3 max-w-4xl mx-auto w-full">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-hand-holding text-amber-400"></i>
+            <span>Your Hand</span>
+          </h3>
         </div>
-        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px] p-2"></div>
       </div>
 
     </main>
@@ -286,13 +320,51 @@
     const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
     const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
 
-    let totalPlayers = 2; // 2 = 1 Bot, 3 = 2 Bots, 4 = 3 Bots
+    let totalPlayers = 2; // 2 = 1 Bot (vs 1 bot), 3 = 2 Bots, 4 = 3 Bots
     let state = {
       playerHand: [],
       cpuHands: [[], [], []],
       turnIndex: 0, // 0 = player, 1..N = Bots
       gameOver: false
     };
+
+    function getUserSettings() {
+      if (window.GameHubSettings && typeof window.GameHubSettings.get === 'function') {
+        return window.GameHubSettings.get();
+      }
+      try {
+        return JSON.parse(localStorage.getItem('gameHubSettings')) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    // Web Audio API Sound Synthesizer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playCardSound(type = 'click') {
+      const settings = getUserSettings();
+      if (settings.sound === false) return;
+
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+      } else if (type === 'draw') {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+      }
+    }
 
     function openRulesModal() {
       const modal = document.getElementById('rules-modal');
@@ -383,6 +455,7 @@
         state.cpuHands[c] = removePairs(state.cpuHands[c]);
       }
 
+      playCardSound('click');
       setStatus("Initial pairs discarded. Your turn to draw from an opponent!");
       render();
     }
@@ -392,6 +465,7 @@
 
       if (state.cpuHands[cpuIndex].length === 0) return;
 
+      playCardSound('draw');
       const drawnCard = state.cpuHands[cpuIndex].splice(cardIdx, 1)[0];
       state.playerHand.push(drawnCard);
       state.playerHand = removePairs(state.playerHand);
@@ -440,12 +514,14 @@
       const target = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
 
       if (target.type === 'player') {
+        playCardSound('draw');
         const randomIdx = Math.floor(Math.random() * state.playerHand.length);
         const drawnCard = state.playerHand.splice(randomIdx, 1)[0];
         state.cpuHands[cpuIndex].push(drawnCard);
         state.cpuHands[cpuIndex] = removePairs(state.cpuHands[cpuIndex]);
         setStatus(`Bot ${cpuIndex + 1} drew a card from your hand.`);
       } else {
+        playCardSound('draw');
         const targetCpuIdx = target.index;
         const randomIdx = Math.floor(Math.random() * state.cpuHands[targetCpuIdx].length);
         const drawnCard = state.cpuHands[targetCpuIdx].splice(randomIdx, 1)[0];
@@ -503,7 +579,16 @@
     }
 
     function createCardHTML(card, extraClasses = '') {
-      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      const settings = getUserSettings();
+      let colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+
+      if (settings.cardFace === 'fourcolor') {
+        if (card.suit === 'spades') colorClass = 'text-slate-900';
+        if (card.suit === 'hearts') colorClass = 'text-red-600';
+        if (card.suit === 'clubs') colorClass = 'text-emerald-600';
+        if (card.suit === 'diamonds') colorClass = 'text-blue-600';
+      }
+
       return `
         <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}">
           <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm">
@@ -522,6 +607,8 @@
     }
 
     function buildSideCpuPanel(cpuIdx) {
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'blue'}`;
       const isTurn = (state.turnIndex === cpuIdx + 1);
       const cardCount = state.cpuHands[cpuIdx].length;
       const interactive = (state.turnIndex === 0 && !state.gameOver && cardCount > 0);
@@ -542,7 +629,7 @@
             ${cardCount > 0 
               ? state.cpuHands[cpuIdx].map((c, cardIdx) => `
                   <div onclick="${interactive ? `playerDrawFromCPU(${cpuIdx}, ${cardIdx})` : ''}" class="${interactive ? 'cursor-pointer hover:scale-105 transition-transform' : ''}">
-                    <div class="playing-card face-down sideways ${overlapClass}"></div>
+                    <div class="playing-card ${backClass} sideways ${overlapClass}"></div>
                   </div>
                 `).join('')
               : `<div class="text-xs text-emerald-200/50 italic py-4">Finished!</div>`
@@ -553,6 +640,9 @@
     }
 
     function render() {
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'blue'}`;
+
       const numCPUs = totalPlayers - 1;
       const topCpuWrapper = document.getElementById('top-cpu-wrapper');
       const cpuHandEl = document.getElementById('cpu-hand');
@@ -573,7 +663,7 @@
         cpuHandEl.innerHTML = state.cpuHands[0].map((c, idx) => {
           const interactive = (state.turnIndex === 0 && !state.gameOver);
           return `<div onclick="${interactive ? `playerDrawFromCPU(0, ${idx})` : ''}">
-            <div class="playing-card face-down flex items-center justify-center ${interactive ? 'playable' : ''}">
+            <div class="playing-card ${backClass} flex items-center justify-center ${interactive ? 'playable' : ''}">
               <i class="fa-solid fa-crown text-white/20 text-lg"></i>
             </div>
           </div>`;
@@ -588,7 +678,7 @@
         cpuHandEl.innerHTML = state.cpuHands[1].map((c, idx) => {
           const interactive = (state.turnIndex === 0 && !state.gameOver);
           return `<div onclick="${interactive ? `playerDrawFromCPU(1, ${idx})` : ''}">
-            <div class="playing-card face-down flex items-center justify-center ${interactive ? 'playable' : ''}">
+            <div class="playing-card ${backClass} flex items-center justify-center ${interactive ? 'playable' : ''}">
               <i class="fa-solid fa-crown text-white/20 text-lg"></i>
             </div>
           </div>`;
@@ -603,7 +693,7 @@
         cpuHandEl.innerHTML = state.cpuHands[1].map((c, idx) => {
           const interactive = (state.turnIndex === 0 && !state.gameOver);
           return `<div onclick="${interactive ? `playerDrawFromCPU(1, ${idx})` : ''}">
-            <div class="playing-card face-down flex items-center justify-center ${interactive ? 'playable' : ''}">
+            <div class="playing-card ${backClass} flex items-center justify-center ${interactive ? 'playable' : ''}">
               <i class="fa-solid fa-crown text-white/20 text-lg"></i>
             </div>
           </div>`;
@@ -616,6 +706,11 @@
       const playerHandEl = document.getElementById('player-hand');
       playerHandEl.innerHTML = state.playerHand.map(c => createCardHTML(c)).join('');
     }
+
+    // Listen to global settings changes in real time
+    window.addEventListener('gameSettingsChanged', () => {
+      render();
+    });
 
     newGame();
   </script>

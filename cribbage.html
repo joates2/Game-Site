@@ -53,6 +53,15 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* Solid Hand Style Matching Dominoes Page */
+    .solid-hand {
+      background: var(--felt-mid);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
     .playing-card {
       width: 68px;
       height: 96px;
@@ -90,10 +99,22 @@
       cursor: not-allowed;
     }
 
+    /* Dynamic Card Back Colors */
     .playing-card.face-down {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
       border: 2px solid rgba(255, 255, 255, 0.28);
       cursor: default;
+    }
+    .playing-card.face-down.deck-red {
+      background: linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #7f1d1d 100%) !important;
+    }
+    .playing-card.face-down.deck-blue {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%) !important;
+    }
+    .playing-card.face-down.deck-green {
+      background: linear-gradient(135deg, #065f46 0%, #047857 50%, #064e3b 100%) !important;
+    }
+    .playing-card.face-down.deck-gold {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #92400e 100%) !important;
     }
 
     .playing-card.face-down::before {
@@ -102,6 +123,16 @@
       inset: 4px;
       border-radius: 0.4rem;
       border: 1px dashed rgba(255, 255, 255, 0.4);
+    }
+
+    /* High Contrast / Dark Pips Mode Styling (Front Faces Only) */
+    html.high-contrast-cards .playing-card:not(.face-down) {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    html.high-contrast-cards .playing-card:not(.face-down).text-red-600 {
+      color: #f43f5e !important;
     }
 
     /* Cribbage Peg Track */
@@ -119,7 +150,7 @@
   <!-- MAIN WRAPPER -->
   <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
     
-    <!-- TOP SITE BANNER (MATCHES HOME PAGE) -->
+    <!-- TOP SITE BANNER -->
     <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
       <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
@@ -145,8 +176,8 @@
       </div>
     </nav>
 
-    <!-- CRIBBAGE CONTROLS & SCOREBOARD BAR -->
-    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-3 mb-4 flex flex-col gap-3 shadow-xl">
+    <!-- CRIBBAGE CONTROLS & UNIFIED STACKED SCOREBOARD -->
+    <nav class="glass-panel rounded-2xl px-3 sm:px-6 py-4 mb-4 flex flex-col gap-3 shadow-xl">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-black shadow-lg">
@@ -159,45 +190,38 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="toggleRulesModal(true)" class="bg-white/10 hover:bg-white/20 text-emerald-200 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
-            <i class="fa-solid fa-circle-question text-amber-300"></i>
-            <span class="hidden sm:inline">Scoring Rules</span>
+          <!-- Player Count Dropdown -->
+          <div class="flex items-center gap-1.5 bg-black/30 border border-white/15 rounded-xl px-2.5 py-1">
+            <i class="fa-solid fa-users text-amber-300 text-xs"></i>
+            <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-transparent text-emerald-200 text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer">
+              <option value="2" class="bg-emerald-950 text-white" selected>2 Players (You vs 1 Bot)</option>
+              <option value="3" class="bg-emerald-950 text-white">3 Players (You vs 2 Bots)</option>
+              <option value="4" class="bg-emerald-950 text-white">4 Players (You vs 3 Bots)</option>
+            </select>
+          </div>
+
+          <button onclick="toggleRulesModal(true)" class="bg-white/10 hover:bg-white/20 text-emerald-200 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all">
+            Rules
           </button>
-          <button onclick="newMatch()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
-            <i class="fa-solid fa-rotate"></i>
+          <button onclick="newMatch()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-plus"></i>
             <span>New Match</span>
           </button>
         </div>
       </div>
 
-      <!-- CRIBBAGE PEGGING TRACK (0 TO 121) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-        <!-- Player Track -->
-        <div class="bg-black/25 rounded-xl p-2.5 border border-white/10">
-          <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-            <span class="text-emerald-200 flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
-              You <span id="player-dealer-tag" class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/30">DEALER</span>
-            </span>
-            <span class="text-amber-300 font-mono text-sm"><span id="player-score">0</span> / 121</span>
-          </div>
-          <div class="w-full h-3 peg-bar-bg rounded-full overflow-hidden p-0.5">
-            <div id="player-peg-bar" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 rounded-full transition-all duration-500" style="width: 0%;"></div>
-          </div>
+      <!-- UNIFIED STACKED SCOREBOARD CONTAINER -->
+      <div class="bg-black/30 rounded-2xl p-3 border border-white/15 flex flex-col gap-2.5 shadow-inner">
+        <!-- Start/Finish Scale Header -->
+        <div class="flex justify-between items-center text-[10px] uppercase font-bold text-emerald-200/60 px-1 font-mono">
+          <span>Start (0)</span>
+          <span>Milestones (30 • 60 • 90)</span>
+          <span>Finish (121)</span>
         </div>
 
-        <!-- CPU Track -->
-        <div class="bg-black/25 rounded-xl p-2.5 border border-white/10">
-          <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-            <span class="text-sky-200 flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>
-              CPU Opponent <span id="cpu-dealer-tag" class="hidden text-[10px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded border border-sky-400/30">DEALER</span>
-            </span>
-            <span class="text-sky-300 font-mono text-sm"><span id="cpu-score">0</span> / 121</span>
-          </div>
-          <div class="w-full h-3 peg-bar-bg rounded-full overflow-hidden p-0.5">
-            <div id="cpu-peg-bar" class="h-full bg-gradient-to-r from-sky-500 to-cyan-300 rounded-full transition-all duration-500" style="width: 0%;"></div>
-          </div>
+        <!-- Score Tracks (Stacked on top of each other) -->
+        <div id="scoreboards-container" class="flex flex-col gap-2 w-full">
+          <!-- Dynamically populated stacked tracks -->
         </div>
       </div>
     </nav>
@@ -205,10 +229,10 @@
     <!-- MAIN GAME TABLE -->
     <main class="flex-1 flex flex-col justify-between gap-4 mb-8">
       
-      <!-- CPU HAND AREA -->
+      <!-- BOT / OPPONENT HAND AREA -->
       <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
         <div class="text-xs font-bold uppercase tracking-wider text-sky-200/70 mb-2">
-          CPU Hand (<span id="cpu-card-count">6</span> cards)
+          <span id="cpu-hand-title">Bot Hand</span> (<span id="cpu-card-count">6</span> cards)
         </div>
         <div id="cpu-hand" class="flex items-center justify-center gap-1.5 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
       </div>
@@ -220,7 +244,7 @@
         <div class="flex items-center gap-4">
           <div class="flex flex-col items-center">
             <span class="text-[10px] uppercase font-bold text-emerald-200/60 mb-1">Deck</span>
-            <div class="playing-card face-down flex items-center justify-center shadow-lg">
+            <div id="deck-back-preview" class="playing-card face-down flex items-center justify-center shadow-lg">
               <i class="fa-solid fa-crown text-white/25 text-xl"></i>
             </div>
           </div>
@@ -273,12 +297,15 @@
 
       </div>
 
-      <!-- PLAYER HAND AREA -->
-      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
-          Your Hand
+      <!-- PLAYER HAND AREA (UPDATED TO MATCH DOMINOES PAGE) -->
+      <div id="seat-player" class="player-seat solid-hand rounded-3xl p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-hand-holding text-amber-400"></i>
+            <span>Your Hand (Player 1)</span>
+          </h3>
         </div>
-        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px] p-2"></div>
       </div>
 
     </main>
@@ -334,7 +361,7 @@
           <div id="final-player-score" class="text-2xl font-extrabold text-amber-300 mt-0.5">121</div>
         </div>
         <div>
-          <div class="text-xs text-emerald-200/60 uppercase font-bold">CPU Score</div>
+          <div class="text-xs text-emerald-200/60 uppercase font-bold">Opponent Score</div>
           <div id="final-cpu-score" class="text-2xl font-extrabold text-sky-300 mt-0.5">98</div>
         </div>
       </div>
@@ -367,28 +394,112 @@
   <script>
     const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
     const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦' };
-    const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
     const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
 
     let match = {
-      playerScore: 0,
-      cpuScore: 0,
-      dealer: 'player', // 'player' or 'cpu'
-      phase: 'discard', // 'discard', 'pegging', 'show', 'gameover'
+      numPlayers: 2,
+      playerScores: [0, 0, 0, 0],
+      dealer: 0,
+      phase: 'discard',
       deck: [],
       starter: null,
-      playerHand: [],      // 4 kept cards after discard
-      cpuHand: [],         // 4 kept cards after discard
-      playerPegCards: [],  // unplayed cards during pegging
-      cpuPegCards: [],     // unplayed cards during pegging
+      playerHands: [[], [], [], []],
+      pegHands: [[], [], [], []],
       crib: [],
       selectedDiscardIndices: [],
-      peggingPile: [],     // cards in current <=31 sequence
+      peggingPile: [],
       peggingCount: 0,
-      turn: 'cpu',
-      playerSaidGo: false,
-      cpuSaidGo: false
+      turn: 1,
+      playerSaidGo: false
     };
+
+    // --- SOUND EFFECTS SYNTHESIZER ---
+    let audioCtx = null;
+    function playSound(type) {
+      const settings = getUserSettings();
+      if (!settings.sound) return;
+
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'shuffle') {
+          // Quick flutter/noise effect for shuffle
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'deal') {
+          // Crisp card snap sound
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'place') {
+          // Placing card down
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.06);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        } else if (type === 'score') {
+          // Satisfying chime for pegging / points
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(660, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'win') {
+          // Victory fanfare chime chord
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(freq, now + idx * 0.08);
+            g.gain.setValueAtTime(0.12, now + idx * 0.08);
+            g.gain.linearRampToValueAtTime(0.01, now + 0.6);
+            o.start(now + idx * 0.08);
+            o.stop(now + 0.6);
+          });
+        }
+      } catch (e) {
+        // Fallback if audio context is restricted before user interaction
+      }
+    }
+
+    function getUserSettings() {
+      if (window.GameHubSettings && typeof window.GameHubSettings.get === 'function') {
+        return window.GameHubSettings.get();
+      }
+      try {
+        return JSON.parse(localStorage.getItem('gameHubSettings')) || {};
+      } catch (e) {
+        return {};
+      }
+    }
 
     function formatRank(r) {
       return RANK_LABELS[r] || r.toString();
@@ -403,12 +514,13 @@
       let id = 0;
       for (const suit of SUITS) {
         for (let rank = 1; rank <= 13; rank++) {
+          const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
           deck.push({
             id: id++,
             suit,
             rank,
             value: cardCountValue(rank),
-            color: SUIT_COLORS[suit],
+            color,
             symbol: SUIT_SYMBOLS[suit],
             label: formatRank(rank)
           });
@@ -418,30 +530,75 @@
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
       }
+      playSound('shuffle');
       return deck;
     }
 
-    function addPoints(who, pts, reason) {
+    function changePlayerCount(val) {
+      match.numPlayers = parseInt(val, 10);
+      updateScoreboardUI();
+      newMatch();
+    }
+
+    function updateScoreboardUI() {
+      const container = document.getElementById('scoreboards-container');
+      let html = '';
+      
+      const trackConfigs = [
+        { color: 'amber', bar: 'from-amber-500 to-yellow-300' },
+        { color: 'sky', bar: 'from-sky-500 to-cyan-300' },
+        { color: 'purple', bar: 'from-purple-500 to-fuchsia-300' },
+        { color: 'rose', bar: 'from-rose-500 to-pink-300' }
+      ];
+
+      for (let i = 0; i < match.numPlayers; i++) {
+        const cfg = trackConfigs[i];
+        let label = 'Player 1 (You)';
+        if (i > 0) {
+          label = match.numPlayers === 2 ? 'Bot Opponent' : `Bot ${i}`;
+        }
+        
+        html += `
+          <div class="bg-black/25 rounded-xl px-3 py-2 border border-white/10 flex flex-col gap-1">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-${cfg.color}-200 flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-${cfg.color}-400 inline-block"></span>
+                ${label} <span id="dealer-tag-${i}" class="hidden text-[10px] bg-${cfg.color}-500/20 text-${cfg.color}-300 px-1.5 py-0.5 rounded border border-${cfg.color}-400/30">DEALER</span>
+              </span>
+              <span class="text-${cfg.color}-300 font-mono text-sm"><span id="score-${i}">0</span> / 121</span>
+            </div>
+            <div class="w-full h-3 peg-bar-bg rounded-full overflow-hidden p-0.5 border border-white/10">
+              <div id="peg-bar-${i}" class="h-full bg-gradient-to-r ${cfg.bar} rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      document.getElementById('cpu-hand-title').textContent = match.numPlayers === 2 ? 'Bot Hand' : 'Bot Hands';
+    }
+
+    function addPoints(pIndex, pts, reason) {
       if (pts <= 0 || match.phase === 'gameover') return;
-      if (who === 'player') {
-        match.playerScore = Math.min(121, match.playerScore + pts);
-      } else {
-        match.cpuScore = Math.min(121, match.cpuScore + pts);
-      }
+      match.playerScores[pIndex] = Math.min(121, match.playerScores[pIndex] + pts);
       updateScoreBars();
+      playSound('score');
       if (reason) {
-        setStatus(`${who === 'player' ? 'You' : 'CPU'} pegged +${pts} pts (${reason})!`);
+        const botName = pIndex === 0 ? 'You' : (match.numPlayers === 2 ? 'Bot Opponent' : `Bot ${pIndex}`);
+        setStatus(`${botName} pegged +${pts} pts (${reason})!`);
       }
-      if (match.playerScore >= 121 || match.cpuScore >= 121) {
+      if (match.playerScores.some(s => s >= 121)) {
         endMatch();
       }
     }
 
     function updateScoreBars() {
-      document.getElementById('player-score').textContent = match.playerScore;
-      document.getElementById('cpu-score').textContent = match.cpuScore;
-      document.getElementById('player-peg-bar').style.width = `${(match.playerScore / 121) * 100}%`;
-      document.getElementById('cpu-peg-bar').style.width = `${(match.cpuScore / 121) * 100}%`;
+      for (let i = 0; i < match.numPlayers; i++) {
+        const scoreEl = document.getElementById(`score-${i}`);
+        const barEl = document.getElementById(`peg-bar-${i}`);
+        if (scoreEl) scoreEl.textContent = match.playerScores[i];
+        if (barEl) barEl.style.width = `${(match.playerScores[i] / 121) * 100}%`;
+      }
     }
 
     function setStatus(msg) {
@@ -449,9 +606,8 @@
     }
 
     function newMatch() {
-      match.playerScore = 0;
-      match.cpuScore = 0;
-      match.dealer = Math.random() < 0.5 ? 'player' : 'cpu';
+      match.playerScores = [0, 0, 0, 0];
+      match.dealer = Math.floor(Math.random() * match.numPlayers);
       updateScoreBars();
       startRound();
     }
@@ -464,110 +620,90 @@
       match.peggingPile = [];
       match.peggingCount = 0;
       match.playerSaidGo = false;
-      match.cpuSaidGo = false;
       match.phase = 'discard';
 
-      // Deal 6 cards each
-      match.playerHand = match.deck.splice(0, 6).sort((a, b) => a.rank - b.rank);
-      match.cpuHand = match.deck.splice(0, 6).sort((a, b) => a.rank - b.rank);
+      const cardsPerPlayer = match.numPlayers === 2 ? 6 : 5;
+      match.playerHands = [];
+      for (let i = 0; i < match.numPlayers; i++) {
+        match.playerHands.push(match.deck.splice(0, cardsPerPlayer).sort((a, b) => a.rank - b.rank));
+      }
+      playSound('deal');
 
-      // Update dealer badges
-      const isPlayerDealer = match.dealer === 'player';
-      document.getElementById('dealer-badge').textContent = isPlayerDealer ? 'Your Crib' : "CPU's Crib";
-      document.getElementById('crib-owner-label').textContent = isPlayerDealer ? 'Your Crib' : "CPU's Crib";
-      document.getElementById('player-dealer-tag').classList.toggle('hidden', !isPlayerDealer);
-      document.getElementById('cpu-dealer-tag').classList.toggle('hidden', isPlayerDealer);
+      const isPlayerDealer = match.dealer === 0;
+      const dealerName = isPlayerDealer ? "Your Crib" : (match.numPlayers === 2 ? "Bot Opponent's Crib" : `Bot ${match.dealer}'s Crib`);
+      document.getElementById('dealer-badge').textContent = dealerName;
+      document.getElementById('crib-owner-label').textContent = dealerName;
+      
+      for (let i = 0; i < match.numPlayers; i++) {
+        const tag = document.getElementById(`dealer-tag-${i}`);
+        if (tag) tag.classList.toggle('hidden', match.dealer !== i);
+      }
 
       document.getElementById('btn-discard-crib').classList.remove('hidden');
       document.getElementById('btn-discard-crib').disabled = true;
       document.getElementById('btn-go').classList.add('hidden');
       document.getElementById('btn-next-phase').classList.add('hidden');
 
-      setStatus(`Select 2 cards from your hand to send to ${isPlayerDealer ? 'your' : "CPU's"} Crib.`);
+      const cardsToDiscard = match.numPlayers === 2 ? 2 : 1;
+      setStatus(`Select ${cardsToDiscard} card(s) from your hand to send to the Crib.`);
       render();
     }
 
     function toggleDiscardCard(idx) {
       if (match.phase !== 'discard') return;
+      const cardsToDiscard = match.numPlayers === 2 ? 2 : 1;
       const pos = match.selectedDiscardIndices.indexOf(idx);
       if (pos !== -1) {
         match.selectedDiscardIndices.splice(pos, 1);
-      } else if (match.selectedDiscardIndices.length < 2) {
+      } else if (match.selectedDiscardIndices.length < cardsToDiscard) {
         match.selectedDiscardIndices.push(idx);
+        playSound('place');
       }
-      document.getElementById('btn-discard-crib').disabled = match.selectedDiscardIndices.length !== 2;
+      document.getElementById('btn-discard-crib').disabled = match.selectedDiscardIndices.length !== cardsToDiscard;
       render();
     }
 
     function confirmCribDiscard() {
-      if (match.selectedDiscardIndices.length !== 2) return;
+      const cardsToDiscard = match.numPlayers === 2 ? 2 : 1;
+      if (match.selectedDiscardIndices.length !== cardsToDiscard) return;
 
-      // Move player's 2 selected cards to crib
       const sortedIndices = [...match.selectedDiscardIndices].sort((a, b) => b - a);
       for (const idx of sortedIndices) {
-        match.crib.push(match.playerHand.splice(idx, 1)[0]);
+        match.crib.push(match.playerHands[0].splice(idx, 1)[0]);
       }
       match.selectedDiscardIndices = [];
 
-      // CPU chooses 2 cards to discard (smartly keeps best 4-card hand)
-      const bestCpu = chooseBestCpuKeep(match.cpuHand);
-      match.cpuHand = bestCpu.keep;
-      match.crib.push(...bestCpu.discard);
+      for (let i = 1; i < match.numPlayers; i++) {
+        const discards = match.playerHands[i].splice(0, cardsToDiscard);
+        match.crib.push(...discards);
+      }
 
-      // Cut starter card
       match.starter = match.deck.pop();
+      playSound('deal');
       document.getElementById('btn-discard-crib').classList.add('hidden');
 
-      // Check His Heels (Starter is a Jack -> Dealer gets 2 points)
       if (match.starter.rank === 11) {
         addPoints(match.dealer, 2, 'His Heels — Jack cut!');
         if (match.phase === 'gameover') return;
       }
 
-      // Begin Pegging phase (non-dealer plays first)
       match.phase = 'pegging';
-      match.playerPegCards = [...match.playerHand];
-      match.cpuPegCards = [...match.cpuHand];
+      match.pegHands = match.playerHands.map(h => [...h]);
       match.peggingPile = [];
       match.peggingCount = 0;
-      match.turn = match.dealer === 'player' ? 'cpu' : 'player';
+      match.turn = (match.dealer + 1) % match.numPlayers;
 
       render();
 
-      if (match.turn === 'cpu') {
-        setStatus('CPU leads the pegging...');
+      if (match.turn !== 0) {
+        const botName = match.numPlayers === 2 ? 'Bot Opponent' : `Bot ${match.turn}`;
+        setStatus(`${botName} leads the pegging...`);
         setTimeout(cpuPegTurn, 750);
       } else {
         setStatus('Your turn to lead! Click a card to play.');
       }
     }
 
-    // Evaluate all 15 combinations of keeping 4 out of 6 cards for CPU
-    function chooseBestCpuKeep(sixCards) {
-      let bestScore = -1;
-      let bestKeep = sixCards.slice(0, 4);
-      let bestDiscard = sixCards.slice(4, 6);
-
-      for (let i = 0; i < 6; i++) {
-        for (let j = i + 1; j < 6; j++) {
-          const keep = [];
-          const discard = [];
-          for (let k = 0; k < 6; k++) {
-            if (k === i || k === j) discard.push(sixCards[k]);
-            else keep.push(sixCards[k]);
-          }
-          const score = scoreHand(keep, null, false).total;
-          if (score > bestScore) {
-            bestScore = score;
-            bestKeep = keep;
-            bestDiscard = discard;
-          }
-        }
-      }
-      return { keep: bestKeep, discard: bestDiscard };
-    }
-
-    /* --- PEGGING LOGIC --- */
     function hasLegalPegCard(cards, currentCount) {
       return cards.some(c => currentCount + c.value <= 31);
     }
@@ -584,7 +720,6 @@
         reasons.push('Thirty-One for 2');
       }
 
-      // Check Pairs / 3-of-a-kind / 4-of-a-kind at end of pile
       const lastRank = pile[pile.length - 1].rank;
       let sameCount = 1;
       for (let i = pile.length - 2; i >= 0; i--) {
@@ -595,7 +730,6 @@
       else if (sameCount === 3) { pts += 6; reasons.push('Pair Royal for 6'); }
       else if (sameCount === 4) { pts += 12; reasons.push('Double Pair Royal for 12'); }
 
-      // Check Runs (longest trailing sequence of 3+ cards forming consecutive ranks in any order)
       for (let len = pile.length; len >= 3; len--) {
         const sub = pile.slice(pile.length - len).map(c => c.rank).sort((a, b) => a - b);
         let isRun = true;
@@ -616,12 +750,13 @@
     }
 
     function playerPlayPegCard(idx) {
-      if (match.phase !== 'pegging' || match.turn !== 'player') return;
-      const card = match.playerPegCards[idx];
+      if (match.phase !== 'pegging' || match.turn !== 0) return;
+      const card = match.pegHands[0][idx];
       if (!card || match.peggingCount + card.value > 31) return;
 
-      match.playerPegCards.splice(idx, 1);
-      playCardToPile('player', card);
+      match.pegHands[0].splice(idx, 1);
+      playSound('place');
+      playCardToPile(0, card);
     }
 
     function playCardToPile(who, card) {
@@ -633,13 +768,14 @@
         addPoints(who, pts, reason);
         if (match.phase === 'gameover') return;
       } else {
-        setStatus(`${who === 'player' ? 'You' : 'CPU'} played ${card.label}${card.symbol} (Count: ${match.peggingCount}).`);
+        const actorName = who === 0 ? 'You' : (match.numPlayers === 2 ? 'Bot Opponent' : `Bot ${who}`);
+        setStatus(`${actorName} played ${card.label}${card.symbol} (Count: ${match.peggingCount}).`);
       }
 
       render();
 
-      // Check if all 8 cards have been pegged
-      if (match.playerPegCards.length === 0 && match.cpuPegCards.length === 0) {
+      const allEmpty = match.pegHands.every(h => h.length === 0);
+      if (allEmpty) {
         if (match.peggingCount !== 31) {
           addPoints(who, 1, 'Last Card for 1');
           if (match.phase === 'gameover') return;
@@ -648,40 +784,48 @@
         return;
       }
 
-      // If count hit 31, reset count & pile automatically
       if (match.peggingCount === 31) {
         setTimeout(() => {
           match.peggingPile = [];
           match.peggingCount = 0;
           match.playerSaidGo = false;
-          match.cpuSaidGo = false;
-          advancePegTurn(who === 'player' ? 'cpu' : 'player');
+          advancePegTurn((who + 1) % match.numPlayers);
         }, 850);
         return;
       }
 
-      advancePegTurn(who === 'player' ? 'cpu' : 'player');
+      advancePegTurn((who + 1) % match.numPlayers);
     }
 
     function advancePegTurn(nextPlayer) {
-      const playerCanPlay = hasLegalPegCard(match.playerPegCards, match.peggingCount);
-      const cpuCanPlay = hasLegalPegCard(match.cpuPegCards, match.peggingCount);
+      let checks = 0;
+      while (match.pegHands[nextPlayer].length === 0 && checks < match.numPlayers) {
+        nextPlayer = (nextPlayer + 1) % match.numPlayers;
+        checks++;
+      }
 
-      // Neither player can play under 31 -> award 1 pt for "Go" and reset count
-      if (!playerCanPlay && !cpuCanPlay) {
-        const lastCardPlayer = nextPlayer === 'player' ? 'cpu' : 'player';
-        addPoints(lastCardPlayer, 1, 'Go for 1');
+      if (checks >= match.numPlayers) {
+        setTimeout(startShowPhase, 900);
+        return;
+      }
+
+      let anyCanPlay = false;
+      for (let i = 0; i < match.numPlayers; i++) {
+        if (match.pegHands[i].length > 0 && hasLegalPegCard(match.pegHands[i], match.peggingCount)) {
+          anyCanPlay = true;
+          break;
+        }
+      }
+
+      if (!anyCanPlay) {
+        addPoints(nextPlayer === 0 ? match.numPlayers - 1 : nextPlayer - 1, 1, 'Go for 1');
         if (match.phase === 'gameover') return;
 
         setTimeout(() => {
           match.peggingPile = [];
           match.peggingCount = 0;
           match.playerSaidGo = false;
-          match.cpuSaidGo = false;
-          const resumeTurn = match.playerPegCards.length > 0 && match.cpuPegCards.length > 0
-            ? nextPlayer
-            : (match.playerPegCards.length > 0 ? 'player' : 'cpu');
-          advancePegTurn(resumeTurn);
+          advancePegTurn(nextPlayer);
         }, 850);
         return;
       }
@@ -689,21 +833,21 @@
       match.turn = nextPlayer;
       render();
 
-      if (nextPlayer === 'player') {
-        if (!playerCanPlay) {
+      if (match.turn === 0) {
+        if (!hasLegalPegCard(match.pegHands[0], match.peggingCount)) {
           document.getElementById('btn-go').classList.remove('hidden');
-          setStatus(`Count is ${match.peggingCount} — you have no playable cards under 31. Say "Go".`);
+          setStatus(`Count is ${match.peggingCount} — no playable cards. Say "Go".`);
         } else {
           document.getElementById('btn-go').classList.add('hidden');
           setStatus(`Your turn! Play a card (Count: ${match.peggingCount}).`);
         }
       } else {
         document.getElementById('btn-go').classList.add('hidden');
-        if (!cpuCanPlay) {
-          setStatus('CPU says "Go"! Your turn again.');
-          setTimeout(() => advancePegTurn('player'), 750);
+        if (!hasLegalPegCard(match.pegHands[match.turn], match.peggingCount)) {
+          setTimeout(() => advancePegTurn((match.turn + 1) % match.numPlayers), 700);
         } else {
-          setStatus('CPU is thinking...');
+          const botName = match.numPlayers === 2 ? 'Bot Opponent' : `Bot ${match.turn}`;
+          setStatus(`${botName} is thinking...`);
           setTimeout(cpuPegTurn, 700);
         }
       }
@@ -712,26 +856,27 @@
     function playerCallGo() {
       document.getElementById('btn-go').classList.add('hidden');
       setStatus('You said "Go".');
-      advancePegTurn('cpu');
+      playSound('place');
+      advancePegTurn((match.turn + 1) % match.numPlayers);
     }
 
     function cpuPegTurn() {
-      if (match.phase !== 'pegging' || match.turn !== 'cpu') return;
+      if (match.phase !== 'pegging' || match.turn === 0) return;
+      const pIdx = match.turn;
       const legalIndices = [];
-      match.cpuPegCards.forEach((c, idx) => {
+      match.pegHands[pIdx].forEach((c, idx) => {
         if (match.peggingCount + c.value <= 31) legalIndices.push(idx);
       });
 
       if (legalIndices.length === 0) {
-        advancePegTurn('player');
+        advancePegTurn((pIdx + 1) % match.numPlayers);
         return;
       }
 
-      // Pick the card that scores the highest immediate pegging points
       let bestIdx = legalIndices[0];
       let bestPts = -1;
       for (const idx of legalIndices) {
-        const testCard = match.cpuPegCards[idx];
+        const testCard = match.pegHands[pIdx][idx];
         const { pts } = calculatePeggingPoints([...match.peggingPile, testCard], match.peggingCount + testCard.value);
         if (pts > bestPts) {
           bestPts = pts;
@@ -739,17 +884,16 @@
         }
       }
 
-      const chosen = match.cpuPegCards.splice(bestIdx, 1)[0];
-      playCardToPile('cpu', chosen);
+      const chosen = match.pegHands[pIdx].splice(bestIdx, 1)[0];
+      playSound('place');
+      playCardToPile(pIdx, chosen);
     }
 
-    /* --- HAND SCORING ENGINE (THE SHOW) --- */
     function scoreHand(fourCards, starter, isCrib = false) {
       const allCards = starter ? [...fourCards, starter] : [...fourCards];
       let total = 0;
       const items = [];
 
-      // 1. Fifteens (all subsets summing to 15 = 2 pts each)
       const n = allCards.length;
       let fifteenCount = 0;
       for (let mask = 1; mask < (1 << n); mask++) {
@@ -765,7 +909,6 @@
         items.push(`${fifteenCount} Fifteen${fifteenCount > 1 ? 's' : ''}: +${pts}`);
       }
 
-      // 2. Pairs (2 pts per pair)
       let pairCount = 0;
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
@@ -778,9 +921,6 @@
         items.push(`${pairCount} Pair${pairCount > 1 ? 's' : ''}: +${pts}`);
       }
 
-      // 3. Runs (check subsets of size 5, then 4, then 3)
-      let foundRunLen = 0;
-      let runPts = 0;
       for (let targetLen = n; targetLen >= 3; targetLen--) {
         let runsOfLen = 0;
         for (let mask = 1; mask < (1 << n); mask++) {
@@ -800,15 +940,13 @@
           if (consecutive) runsOfLen++;
         }
         if (runsOfLen > 0) {
-          foundRunLen = targetLen;
-          runPts = runsOfLen * targetLen;
+          const runPts = runsOfLen * targetLen;
           total += runPts;
-          items.push(`${runsOfLen > 1 ? runsOfLen + 'x ' : ''}Run of ${foundRunLen}: +${runPts}`);
+          items.push(`${runsOfLen > 1 ? runsOfLen + 'x ' : ''}Run of ${targetLen}: +${runPts}`);
           break;
         }
       }
 
-      // 4. Flush (4 cards in hand same suit = 4 pts [non-crib]; 5 cards incl. starter = 5 pts)
       if (fourCards.length === 4) {
         const firstSuit = fourCards[0].suit;
         const handFlush = fourCards.every(c => c.suit === firstSuit);
@@ -823,12 +961,11 @@
         }
       }
 
-      // 5. His Nobs (Jack in hand matching Starter suit = 1 pt)
       if (starter) {
         const hasNobs = fourCards.some(c => c.rank === 11 && c.suit === starter.suit);
         if (hasNobs) {
           total += 1;
-          items.push('His Nobs (Jack of Starter Suit): +1');
+          items.push('His Nobs: +1');
         }
       }
 
@@ -839,47 +976,34 @@
       match.phase = 'show';
       render();
 
-      const nonDealer = match.dealer === 'player' ? 'cpu' : 'player';
-      const dealer = match.dealer;
-
       const sections = [];
+      let cur = (match.dealer + 1) % match.numPlayers;
+      
+      for (let count = 0; count < match.numPlayers; count++) {
+        const hand = match.playerHands[cur];
+        const res = scoreHand(hand, match.starter, false);
+        addPoints(cur, res.total);
+        const titleName = cur === 0 ? 'Your Hand' : (match.numPlayers === 2 ? 'Bot Opponent Hand' : `Bot ${cur} Hand`);
+        sections.push({
+          title: titleName,
+          cards: [...hand, match.starter],
+          res
+        });
+        if (match.phase === 'gameover') return;
+        cur = (cur + 1) % match.numPlayers;
+      }
 
-      // 1. Non-dealer counts first
-      const nonDealerHand = nonDealer === 'player' ? match.playerHand : match.cpuHand;
-      const nonDealerRes = scoreHand(nonDealerHand, match.starter, false);
-      addPoints(nonDealer, nonDealerRes.total);
-      sections.push({
-        title: `${nonDealer === 'player' ? 'Your Hand' : 'CPU Hand'} (Non-Dealer)`,
-        cards: [...nonDealerHand, match.starter],
-        res: nonDealerRes
-      });
-
-      if (match.phase === 'gameover') return;
-
-      // 2. Dealer counts second
-      const dealerHand = dealer === 'player' ? match.playerHand : match.cpuHand;
-      const dealerRes = scoreHand(dealerHand, match.starter, false);
-      addPoints(dealer, dealerRes.total);
-      sections.push({
-        title: `${dealer === 'player' ? 'Your Hand' : 'CPU Hand'} (Dealer)`,
-        cards: [...dealerHand, match.starter],
-        res: dealerRes
-      });
-
-      if (match.phase === 'gameover') return;
-
-      // 3. Crib counts third (belongs to dealer)
       const cribRes = scoreHand(match.crib, match.starter, true);
-      addPoints(dealer, cribRes.total);
+      addPoints(match.dealer, cribRes.total);
+      const cribTitleName = match.dealer === 0 ? 'Your Crib' : (match.numPlayers === 2 ? "Bot Opponent Crib" : `Bot ${match.dealer} Crib`);
       sections.push({
-        title: `${dealer === 'player' ? 'Your Crib' : "CPU's Crib"}`,
+        title: cribTitleName,
         cards: [...match.crib, match.starter],
         res: cribRes
       });
 
       if (match.phase === 'gameover') return;
 
-      // Render breakdown modal
       const breakdownEl = document.getElementById('show-breakdown');
       breakdownEl.innerHTML = sections.map(sec => `
         <div class="bg-black/35 border border-white/10 rounded-2xl p-3.5">
@@ -889,7 +1013,7 @@
           </div>
           <div class="flex items-center gap-1.5 mb-2 flex-wrap">
             ${sec.cards.map((c, idx) => `
-              <span class="px-2 py-1 rounded bg-white text-xs font-extrabold ${c.color === 'red' ? 'text-red-600' : 'text-slate-900'} ${idx === 4 ? 'ring-2 ring-amber-400' : ''}" title="${idx === 4 ? 'Starter Card' : ''}">
+              <span class="px-2 py-1 rounded bg-white text-xs font-extrabold ${c.color === 'red' ? 'text-red-600' : 'text-slate-900'} ${idx === 4 ? 'ring-2 ring-amber-400' : ''}">
                 ${c.label}${c.symbol}
               </span>
             `).join('')}
@@ -909,19 +1033,22 @@
       const modal = document.getElementById('show-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-      match.dealer = match.dealer === 'player' ? 'cpu' : 'player';
+      match.dealer = (match.dealer + 1) % match.numPlayers;
       startRound();
     }
 
     function endMatch() {
       match.phase = 'gameover';
-      const playerWon = match.playerScore >= 121;
-      document.getElementById('win-title').textContent = playerWon ? 'You Won!' : 'CPU Won!';
+      playSound('win');
+      const winnerIdx = match.playerScores.findIndex(s => s >= 121);
+      const playerWon = winnerIdx === 0;
+      const winnerName = playerWon ? 'You Won!' : (match.numPlayers === 2 ? 'Bot Opponent Won!' : `Bot ${winnerIdx} Won!`);
+      document.getElementById('win-title').textContent = winnerName;
       document.getElementById('win-subtitle').textContent = playerWon
         ? 'Congratulations! You pegged 121 points first.'
-        : 'The CPU reached 121 points first. Ready for a rematch?';
-      document.getElementById('final-player-score').textContent = match.playerScore;
-      document.getElementById('final-cpu-score').textContent = match.cpuScore;
+        : `${winnerName.replace('!', '')} reached 121 points first. Ready for a rematch?`;
+      document.getElementById('final-player-score').textContent = match.playerScores[0];
+      document.getElementById('final-cpu-score').textContent = match.playerScores[winnerIdx === 0 ? 1 : winnerIdx];
 
       const modal = document.getElementById('win-modal');
       modal.classList.remove('hidden');
@@ -941,40 +1068,68 @@
     }
 
     function createCardHTML(card, extraClasses = '') {
-      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      const settings = getUserSettings();
+      let colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      
+      let symbolDisplay = card.symbol;
+      if (settings.cardFace === 'fourcolor') {
+        if (card.suit === 'spades') colorClass = 'text-slate-900';
+        if (card.suit === 'hearts') colorClass = 'text-red-600';
+        if (card.suit === 'clubs') colorClass = 'text-emerald-600';
+        if (card.suit === 'diamonds') colorClass = 'text-blue-600';
+      }
+
       return `
         <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}">
           <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm">
             <span>${card.label}</span>
-            <span>${card.symbol}</span>
+            <span>${symbolDisplay}</span>
           </div>
           <div class="text-center text-xl sm:text-2xl leading-none my-auto">
-            ${card.symbol}
+            ${symbolDisplay}
           </div>
           <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm rotate-180">
             <span>${card.label}</span>
-            <span>${card.symbol}</span>
+            <span>${symbolDisplay}</span>
           </div>
         </div>
       `;
     }
 
     function render() {
-      // 1. Render CPU Hand
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'red'}`;
+
+      const deckPreviewEl = document.getElementById('deck-back-preview');
+      if (deckPreviewEl) {
+        deckPreviewEl.className = `playing-card ${backClass} flex items-center justify-center shadow-lg`;
+      }
+
       const cpuHandEl = document.getElementById('cpu-hand');
-      const cpuCardsToShow = match.phase === 'discard'
-        ? match.cpuHand
-        : (match.phase === 'pegging' ? match.cpuPegCards : match.cpuHand);
-      document.getElementById('cpu-card-count').textContent = cpuCardsToShow.length;
+      let totalOpponentCards = 0;
+      for (let i = 1; i < match.numPlayers; i++) {
+        const cards = match.phase === 'discard' ? match.playerHands[i] : match.pegHands[i];
+        totalOpponentCards += cards.length;
+      }
+      document.getElementById('cpu-card-count').textContent = match.phase === 'discard' ? match.playerHands[1].length : totalOpponentCards;
+      document.getElementById('cpu-hand-title').textContent = match.numPlayers === 2 ? 'Bot Hand' : 'Bot Hands';
 
-      cpuHandEl.innerHTML = cpuCardsToShow.map(c => {
-        if (match.phase === 'show') {
-          return createCardHTML(c);
+      if (match.phase === 'show') {
+        let allOpponentCardsHTML = '';
+        for (let i = 1; i < match.numPlayers; i++) {
+          const botLabel = match.numPlayers === 2 ? 'Bot' : `Bot ${i}`;
+          allOpponentCardsHTML += `<div class="flex gap-1 items-center mx-2"><span class="text-[10px] text-sky-300">${botLabel}:</span>` + match.playerHands[i].map(c => createCardHTML(c)).join('') + `</div>`;
         }
-        return `<div class="playing-card face-down"></div>`;
-      }).join('');
+        cpuHandEl.innerHTML = allOpponentCardsHTML;
+      } else {
+        const displayCardsCount = match.phase === 'discard' ? match.playerHands[1].length : totalOpponentCards;
+        let backs = '';
+        for (let i = 0; i < displayCardsCount; i++) {
+          backs += `<div class="playing-card ${backClass}"></div>`;
+        }
+        cpuHandEl.innerHTML = backs;
+      }
 
-      // 2. Render Starter Card
       const starterSlot = document.getElementById('starter-slot');
       if (match.starter) {
         starterSlot.outerHTML = `<div id="starter-slot">${createCardHTML(match.starter)}</div>`;
@@ -982,7 +1137,6 @@
         starterSlot.outerHTML = `<div id="starter-slot" class="w-[68px] h-[96px] sm:w-[82px] sm:h-[116px] rounded-xl border border-dashed border-white/25 bg-black/25 flex items-center justify-center text-xs text-white/30">Cut</div>`;
       }
 
-      // 3. Render Pegging Pile & Count
       document.getElementById('pegging-count').innerHTML = `${match.peggingCount} <span class="text-xs font-normal text-white/40">/ 31</span>`;
       const pegPileEl = document.getElementById('pegging-pile');
       if (match.peggingPile.length === 0) {
@@ -991,35 +1145,40 @@
         pegPileEl.innerHTML = match.peggingPile.map(c => createCardHTML(c)).join('');
       }
 
-      // 4. Render Crib Slot
       const cribSlot = document.getElementById('crib-slot');
+      const expectedCribSize = match.numPlayers === 2 ? 4 : (match.numPlayers === 3 ? 3 : 4);
       if (match.crib.length > 0) {
         cribSlot.innerHTML = `
-          <div class="playing-card face-down flex flex-col items-center justify-center">
-            <span class="text-xs font-extrabold text-amber-300 bg-black/60 px-2 py-0.5 rounded">${match.crib.length} Cards</span>
+          <div class="playing-card ${backClass} flex flex-col items-center justify-center">
+            <span class="text-xs font-extrabold text-amber-300 bg-black/60 px-2 py-0.5 rounded">${match.crib.length} / ${expectedCribSize}</span>
           </div>
         `;
       } else {
-        cribSlot.innerHTML = `<i class="fa-solid fa-box-archive text-lg mb-1"></i><span>0 / 4</span>`;
+        cribSlot.innerHTML = `<i class="fa-solid fa-box-archive text-lg mb-1"></i><span>0 / ${expectedCribSize}</span>`;
       }
 
-      // 5. Render Player Hand
       const playerHandEl = document.getElementById('player-hand');
       if (match.phase === 'discard') {
-        playerHandEl.innerHTML = match.playerHand.map((c, idx) => {
+        playerHandEl.innerHTML = match.playerHands[0].map((c, idx) => {
           const isSel = match.selectedDiscardIndices.includes(idx);
           return `<div onclick="toggleDiscardCard(${idx})">${createCardHTML(c, `playable ${isSel ? 'selected' : ''}`)}</div>`;
         }).join('');
       } else if (match.phase === 'pegging') {
-        playerHandEl.innerHTML = match.playerPegCards.map((c, idx) => {
-          const canPlay = match.turn === 'player' && (match.peggingCount + c.value <= 31);
+        playerHandEl.innerHTML = match.pegHands[0].map((c, idx) => {
+          const canPlay = match.turn === 0 && (match.peggingCount + c.value <= 31);
           return `<div onclick="playerPlayPegCard(${idx})">${createCardHTML(c, canPlay ? 'playable' : 'disabled-card')}</div>`;
         }).join('');
       } else {
-        playerHandEl.innerHTML = match.playerHand.map(c => createCardHTML(c)).join('');
+        playerHandEl.innerHTML = match.playerHands[0].map(c => createCardHTML(c)).join('');
       }
     }
 
+    // Listen to the custom event dispatched by settings.js when settings update
+    window.addEventListener('gameSettingsChanged', (e) => {
+      render();
+    });
+
+    updateScoreboardUI();
     newMatch();
   </script>
 </body>

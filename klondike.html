@@ -235,7 +235,7 @@
   <!-- MAIN WRAPPER -->
   <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-2 sm:px-4 py-2 sm:py-4">
     
-    <!-- TOP NAVBAR (Matches Home Page) -->
+    <!-- TOP NAVBAR -->
     <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-6 flex items-center justify-between shadow-xl">
       <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
@@ -323,14 +323,14 @@
       <!-- Top Row: Stock, Waste, Foundations -->
       <div class="flex justify-between items-center w-full gap-2 sm:gap-4">
         <div class="flex items-center gap-2 sm:gap-4">
-          <!-- Stock Slot (Top Left Face-Down Deck) -->
+          <!-- Stock Slot -->
           <div id="stock-slot" class="card-slot cursor-pointer flex items-center justify-center transition-all hover:border-white/50 z-10" title="Click to Draw Cards">
             <div id="stock-reset-icon" class="hidden text-white/40 flex-col items-center gap-1 text-xs sm:text-sm">
               <i class="fa-solid fa-arrows-rotate text-lg sm:text-2xl"></i>
               <span class="text-[9px] uppercase font-bold tracking-wider">Recycle</span>
             </div>
           </div>
-          <!-- Waste Slot (Drawn Cards Pile) -->
+          <!-- Waste Slot -->
           <div id="waste-slot" class="card-slot"></div>
         </div>
 
@@ -466,7 +466,7 @@
       return 80;
     }
 
-    /* --- SOUND EFFECTS (Respects Global Sound Toggle) --- */
+    /* --- SOUND EFFECTS --- */
     let audioCtx = null;
     function playSound(type) {
       if (!getAppSettings().sound) return;
@@ -825,57 +825,53 @@
       return null;
     }
 
-    /* --- AUTO MOVE / CLICK & TWO-CLICK SELECTION HANDLERS --- */
+    /* --- ROBUST CLICK & DRAG INTERACTION HANDLERS --- */
     function attachCardInteractions(el, card) {
-      let isDragging = false;
       let startX = 0;
       let startY = 0;
+      let hasMoved = false;
 
       const handlePointerDown = (e) => {
-        isDragging = false;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         startX = clientX;
         startY = clientY;
-        handleDragStart(e, card);
+        hasMoved = false;
+
+        const onMove = (moveEvent) => {
+          const moveX = moveEvent.touches ? moveEvent.touches[0].clientX : moveEvent.clientX;
+          const moveY = moveEvent.touches ? moveEvent.touches[0].clientY : moveEvent.clientY;
+          if (Math.hypot(moveX - startX, moveY - startY) > 5) {
+            hasMoved = true;
+            cleanupListeners();
+            handleDragStart(e, card);
+          }
+        };
+
+        const onUp = (upEvent) => {
+          cleanupListeners();
+          if (!hasMoved) {
+            performCardClick(card);
+          }
+        };
+
+        const cleanupListeners = () => {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('touchmove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          document.removeEventListener('touchend', onUp);
+        };
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('mouseup', onUp);
+        document.addEventListener('touchend', onUp);
       };
 
       el.addEventListener('mousedown', handlePointerDown);
       el.addEventListener('touchstart', handlePointerDown, { passive: false });
 
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        clearHintHighlight();
-
-        if (selectedCardId !== null && selectedCardId !== card.id) {
-          const srcCard = getCardById(selectedCardId);
-          const srcLoc = findCardLocation(selectedCardId);
-          const destLoc = findCardLocation(card.id);
-
-          if (srcCard && srcLoc && destLoc) {
-            if (destLoc.zone === 'foundation') {
-              if (isValidFoundationMove(srcCard, destLoc.foundationIndex)) {
-                executeTwoClickMove(srcCard, srcLoc, { zone: 'foundation', foundationIndex: destLoc.foundationIndex });
-                return;
-              }
-            }
-            if (destLoc.zone === 'tableau') {
-              if (isValidTableauMove(srcCard, destLoc.colIndex)) {
-                executeTwoClickMove(srcCard, srcLoc, { zone: 'tableau', colIndex: destLoc.colIndex });
-                return;
-              }
-            }
-          }
-        }
-
-        if (selectedCardId === card.id) {
-          selectedCardId = null;
-        } else {
-          selectedCardId = card.id;
-        }
-        renderBoard();
-      });
-
+      // Double-click / double-tap for auto-move to foundation
       let lastTap = 0;
       el.addEventListener('touchend', (e) => {
         const currentTime = new Date().getTime();
@@ -891,6 +887,41 @@
         e.preventDefault();
         handleAutoMove(card);
       });
+    }
+
+    function performCardClick(card) {
+      clearHintHighlight();
+
+      // If a card is already selected and we click another card as destination
+      if (selectedCardId !== null && selectedCardId !== card.id) {
+        const srcCard = getCardById(selectedCardId);
+        const srcLoc = findCardLocation(selectedCardId);
+        const destLoc = findCardLocation(card.id);
+
+        if (srcCard && srcLoc && destLoc) {
+          if (destLoc.zone === 'foundation') {
+            const srcCards = srcLoc.zone === 'tableau' ? gameState.tableau[srcLoc.colIndex].slice(srcLoc.index) : [srcCard];
+            if (srcCards.length === 1 && isValidFoundationMove(srcCard, destLoc.foundationIndex)) {
+              executeTwoClickMove(srcCard, srcLoc, { zone: 'foundation', foundationIndex: destLoc.foundationIndex });
+              return;
+            }
+          }
+          if (destLoc.zone === 'tableau') {
+            if (isValidTableauMove(srcCard, destLoc.colIndex)) {
+              executeTwoClickMove(srcCard, srcLoc, { zone: 'tableau', colIndex: destLoc.colIndex });
+              return;
+            }
+          }
+        }
+      }
+
+      // Toggle selection
+      if (selectedCardId === card.id) {
+        selectedCardId = null;
+      } else {
+        selectedCardId = card.id;
+      }
+      renderBoard();
     }
 
     function executeTwoClickMove(srcCard, srcLoc, destTarget) {
@@ -1410,7 +1441,7 @@
 
       for (let col = 0; col < 7; col++) {
         document.getElementById(`tableau-${col}`).addEventListener('click', (e) => {
-          if (selectedCardId !== null) {
+          if (selectedCardId !== null && e.target.classList.contains('card-slot')) {
             const srcCard = getCardById(selectedCardId);
             const srcLoc = findCardLocation(selectedCardId);
             if (srcCard && srcLoc && isValidTableauMove(srcCard, col)) {
@@ -1426,7 +1457,10 @@
             const srcCard = getCardById(selectedCardId);
             const srcLoc = findCardLocation(selectedCardId);
             if (srcCard && srcLoc && isValidFoundationMove(srcCard, f)) {
-              executeTwoClickMove(srcCard, srcLoc, { zone: 'foundation', foundationIndex: f });
+              const srcCards = srcLoc.zone === 'tableau' ? gameState.tableau[srcLoc.colIndex].slice(srcLoc.index) : [srcCard];
+              if (srcCards.length === 1) {
+                executeTwoClickMove(srcCard, srcLoc, { zone: 'foundation', foundationIndex: f });
+              }
             }
           }
         });

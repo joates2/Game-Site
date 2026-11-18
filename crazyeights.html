@@ -53,6 +53,15 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* Solid Hand Style Matching Dominoes & Cribbage Pages */
+    .solid-hand {
+      background: var(--felt-mid);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
     .playing-card {
       width: 68px;
       height: 96px;
@@ -84,10 +93,22 @@
       cursor: not-allowed;
     }
 
+    /* Dynamic Card Back Colors */
     .playing-card.face-down {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
       border: 2px solid rgba(255, 255, 255, 0.28);
-      cursor: default;
+      cursor: pointer;
+    }
+    .playing-card.face-down.deck-red {
+      background: linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #7f1d1d 100%) !important;
+    }
+    .playing-card.face-down.deck-blue {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%) !important;
+    }
+    .playing-card.face-down.deck-green {
+      background: linear-gradient(135deg, #065f46 0%, #047857 50%, #064e3b 100%) !important;
+    }
+    .playing-card.face-down.deck-gold {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #92400e 100%) !important;
     }
 
     .playing-card.face-down::before {
@@ -98,21 +119,32 @@
       border: 1px dashed rgba(255, 255, 255, 0.4);
     }
 
-    .card-slot {
-      width: 68px;
-      height: 96px;
-      border-radius: 0.65rem;
-      border: 2px dashed rgba(255, 255, 255, 0.22);
-      background-color: rgba(0, 0, 0, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* Full-size sideways card back for side wings */
+    .playing-card.face-down.sideways {
+      width: 82px;
+      height: 58px;
+      border-radius: 0.5rem;
+      cursor: default;
     }
     @media (min-width: 640px) {
-      .card-slot {
-        width: 82px;
-        height: 116px;
+      .playing-card.face-down.sideways {
+        width: 100px;
+        height: 70px;
       }
+    }
+    .playing-card.face-down.sideways::before {
+      inset: 3px;
+      border-radius: 0.3rem;
+    }
+
+    /* High Contrast / Dark Pips Mode Styling (Front Faces Only) */
+    html.high-contrast-cards .playing-card:not(.face-down) {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    html.high-contrast-cards .playing-card:not(.face-down).text-red-600 {
+      color: #f43f5e !important;
     }
   </style>
 </head>
@@ -122,9 +154,9 @@
   <div class="vignette"></div>
 
   <!-- MAIN WRAPPER -->
-  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-5">
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-2 sm:px-5 py-3 sm:py-5">
     
-    <!-- TOP SITE BANNER (MATCHES HOME PAGE) -->
+    <!-- TOP SITE BANNER -->
     <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
       <a href="index.html" class="flex items-center gap-3 group hover:opacity-90 transition-opacity">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
@@ -162,9 +194,22 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button onclick="newGame()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
-          <i class="fa-solid fa-rotate"></i>
+      <div class="flex items-center gap-3 text-xs sm:text-sm font-semibold">
+        <div class="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
+          <label for="player-count-select" class="text-emerald-200/70">Players:</label>
+          <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-black/50 text-amber-300 font-bold rounded-lg px-2 py-0.5 border border-white/20 focus:outline-none cursor-pointer">
+            <option value="2">2 Players (1 Bot)</option>
+            <option value="3">3 Players (2 Bots)</option>
+            <option value="4">4 Players (3 Bots)</option>
+          </select>
+        </div>
+
+        <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i>
+          <span class="hidden sm:inline">Rules</span>
+        </button>
+        <button onclick="newGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-plus"></i>
           <span>New Game</span>
         </button>
       </div>
@@ -173,53 +218,67 @@
     <!-- MAIN GAME TABLE -->
     <main class="flex-1 flex flex-col justify-between gap-4 mb-8">
       
-      <!-- CPU HAND AREA -->
-      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
-        <div class="text-xs font-bold uppercase tracking-wider text-sky-200/70 mb-2">
-          CPU Opponent (<span id="cpu-card-count">5</span> cards)
+      <!-- TOP CPU HAND AREA -->
+      <div id="top-cpu-wrapper" class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full">
+        <div id="cpu-label-top" class="text-xs font-bold uppercase tracking-wider text-sky-200/70 mb-2">
+          Bot 1 (<span id="cpu-card-count-0">5</span> cards)
         </div>
-        <div id="cpu-hand" class="flex items-center justify-center gap-1.5 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+        <div id="cpu-hand-0" class="flex items-center justify-center gap-1.5 sm:gap-3 min-h-[96px] sm:min-h-[116px] overflow-x-auto w-full"></div>
       </div>
 
-      <!-- CENTER ARENA: STOCK & DISCARD PILE -->
-      <div class="glass-panel rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center">
+      <!-- MIDDLE ROW: LEFT WING, CENTER ARENA, RIGHT WING -->
+      <div class="grid grid-cols-1 md:grid-cols-[240px_1fr_240px] gap-4 items-stretch w-full">
         
-        <!-- Status Notification -->
-        <div id="status-message" class="text-xs sm:text-sm font-semibold text-white bg-emerald-950/70 border border-emerald-400/30 px-5 py-2.5 rounded-xl max-w-md w-full shadow-lg">
-          Your turn! Match the top card's rank or suit, or play an 8.
-        </div>
+        <!-- LEFT SIDE BOT WING -->
+        <div id="cpu-left-slot" class="w-full flex-shrink-0 hidden"></div>
 
-        <!-- Active Wild Suit Indicator -->
-        <div id="active-suit-indicator" class="hidden text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full">
-          Active Wild Suit: <span id="wild-suit-name" class="uppercase">Spades</span>
-        </div>
+        <!-- CENTER ARENA: STOCK & DISCARD PILE -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center w-full max-w-xl mx-auto md:col-start-2">
+          
+          <!-- Status Notification -->
+          <div id="status-message" class="text-xs sm:text-sm font-semibold text-white bg-emerald-950/70 border border-emerald-400/30 px-5 py-2.5 rounded-xl w-full shadow-lg">
+            Your turn! Match the top card's rank or suit, or play an 8.
+          </div>
 
-        <div class="flex items-center justify-center gap-6 sm:gap-10 my-2">
-          <!-- Stock Pile -->
-          <div class="flex flex-col items-center">
-            <span class="text-[10px] uppercase font-bold text-emerald-200/60 mb-1">Stock (<span id="stock-count">34</span>)</span>
-            <div id="stock-pile" onclick="playerDrawCard()" class="card-slot face-down cursor-pointer hover:border-white/60 transition-all shadow-lg flex items-center justify-center" title="Click to draw card">
-              <i class="fa-solid fa-clone text-white/30 text-xl"></i>
+          <!-- Active Wild Suit Indicator -->
+          <div id="active-suit-indicator" class="hidden text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full">
+            Active Wild Suit: <span id="wild-suit-name" class="uppercase">Spades</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-6 sm:gap-10 my-2">
+            <!-- Stock Pile -->
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase font-bold text-emerald-200/60 mb-1">Stock (<span id="stock-count">34</span>)</span>
+              <div id="stock-pile" onclick="playerDrawCard()" class="playing-card face-down flex items-center justify-center hover:scale-105 transition-transform shadow-lg" title="Click to draw card">
+                <i class="fa-solid fa-crown text-white/20 text-lg"></i>
+              </div>
+            </div>
+
+            <!-- Discard Pile -->
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase font-bold text-amber-300/80 mb-1">Discard Pile</span>
+              <div id="discard-slot" class="flex items-center justify-center">
+                <!-- Top discard card rendered here -->
+              </div>
             </div>
           </div>
 
-          <!-- Discard Pile -->
-          <div class="flex flex-col items-center">
-            <span class="text-[10px] uppercase font-bold text-amber-300/80 mb-1">Discard Pile</span>
-            <div id="discard-slot" class="card-slot flex items-center justify-center">
-              <!-- Top discard card rendered here -->
-            </div>
-          </div>
         </div>
+
+        <!-- RIGHT SIDE BOT WING -->
+        <div id="cpu-right-slot" class="w-full flex-shrink-0 hidden"></div>
 
       </div>
 
-      <!-- PLAYER HAND AREA -->
-      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
-          Your Hand (<span id="player-card-count">5</span> cards)
+      <!-- PLAYER HAND AREA (UPDATED TO MATCH DOMINOES & CRIBBAGE PAGES) -->
+      <div id="seat-player" class="player-seat solid-hand rounded-3xl p-4 flex flex-col gap-3 max-w-4xl mx-auto w-full">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-hand-holding text-amber-400"></i>
+            <span>Your Hand (<span id="player-card-count">5</span> cards)</span>
+          </h3>
         </div>
-        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px] p-2"></div>
       </div>
 
     </main>
@@ -243,6 +302,27 @@
       </div>
     </footer>
 
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Crazy Eights Rules</h2>
+        <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+        <p><strong class="text-amber-300">Objective:</strong> Be the first player to get rid of all the cards in your hand.</p>
+        <p><strong class="text-amber-300">Matching:</strong> On your turn, you must play a card that matches either the suit or the rank of the top card on the discard pile.</p>
+        <p><strong class="text-amber-300">Eights are Wild:</strong> Eights can be played on top of any card at any time. When you play an 8, you get to choose a new active suit for the next player.</p>
+        <p><strong class="text-amber-300">Drawing:</strong> If you do not have a valid card to play, you must draw from the stock pile until you can play or the stock runs out.</p>
+      </div>
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+        Got It
+      </button>
+    </div>
   </div>
 
   <!-- WILD SUIT SELECTION MODAL -->
@@ -291,15 +371,110 @@
     const SUIT_COLORS = { spades: 'black', hearts: 'red', clubs: 'black', diamonds: 'red' };
     const RANK_LABELS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
 
+    let totalPlayers = 2; // 2 = 1 player + 1 bot; up to 4 players total (1 player + 3 bots)
     let state = {
       deck: [],
       discardPile: [],
       playerHand: [],
-      cpuHand: [],
-      turn: 'player', // 'player' or 'cpu'
-      activeSuit: null, // set when an 8 is played
+      cpuHands: [[], [], []],
+      turnIndex: 0, // 0 = player, 1..N = bots
+      activeSuit: null,
       gameOver: false
     };
+
+    function getUserSettings() {
+      if (window.GameHubSettings && typeof window.GameHubSettings.get === 'function') {
+        return window.GameHubSettings.get();
+      }
+      try {
+        return JSON.parse(localStorage.getItem('gameHubSettings')) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function openRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRulesModal() {
+      const modal = document.getElementById('rules-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // --- Web Audio API Sound Synthesizer ---
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      const settings = getUserSettings();
+      if (settings.sound === false) return;
+
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+
+        if (type === 'card') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'shuffle') {
+          for (let i = 0; i < 4; i++) {
+            const timeOffset = i * 0.04;
+            const subOsc = ctx.createOscillator();
+            const subGain = ctx.createGain();
+            subOsc.type = 'square';
+            subOsc.frequency.setValueAtTime(200 + Math.random() * 150, now + timeOffset);
+            subOsc.connect(subGain);
+            subGain.connect(ctx.destination);
+            subGain.gain.setValueAtTime(0.05, now + timeOffset);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + timeOffset + 0.03);
+            subOsc.start(now + timeOffset);
+            subOsc.stop(now + timeOffset + 0.03);
+          }
+        } else if (type === 'win') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.12); // E5
+          osc.frequency.setValueAtTime(783.99, now + 0.24); // G5
+          osc.frequency.setValueAtTime(1046.50, now + 0.36); // C6
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        } else if (type === 'lose') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.4);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        }
+      } catch (e) {
+        // Audio context restrictions bypassed gracefully
+      }
+    }
 
     function formatRank(r) {
       return RANK_LABELS[r] || r.toString();
@@ -331,19 +506,29 @@
       document.getElementById('status-message').textContent = msg;
     }
 
+    function changePlayerCount(val) {
+      totalPlayers = parseInt(val);
+      newGame();
+    }
+
     function newGame() {
+      playSound('shuffle');
       state.deck = createDeck();
       state.discardPile = [];
       state.playerHand = [];
-      state.cpuHand = [];
-      state.turn = 'player';
+      state.cpuHands = [[], [], []];
+      state.turnIndex = 0;
       state.activeSuit = null;
       state.gameOver = false;
 
-      // Deal 5 cards each (or 7 for standard, 5 keeps mobile view tidy)
+      const numCPUs = totalPlayers - 1;
+
+      // Deal 5 cards each
       for (let i = 0; i < 5; i++) {
         state.playerHand.push(state.deck.pop());
-        state.cpuHand.push(state.deck.pop());
+        for (let c = 0; c < numCPUs; c++) {
+          state.cpuHands[c].push(state.deck.pop());
+        }
       }
 
       // Flip initial top card (ensure it's not an 8 to start)
@@ -368,7 +553,7 @@
     }
 
     function playerPlayCard(idx) {
-      if (state.turn !== 'player' || state.gameOver) return;
+      if (state.turnIndex !== 0 || state.gameOver) return;
       const card = state.playerHand[idx];
 
       if (!isCardPlayable(card)) {
@@ -376,46 +561,42 @@
         return;
       }
 
+      playSound('card');
       state.playerHand.splice(idx, 1);
       state.discardPile.push(card);
-      state.activeSuit = null; // clear previous wild suit if matched normally
+      state.activeSuit = null;
 
       render();
 
       if (state.playerHand.length === 0) {
-        endGame('player');
+        endGame(0);
         return;
       }
 
       if (card.rank === 8) {
-        // Open modal to choose wild suit
         document.getElementById('suit-modal').classList.remove('hidden');
         document.getElementById('suit-modal').classList.add('flex');
         setStatus("You played an 8! Choose a new suit.");
         return;
       }
 
-      // Switch to CPU turn
-      state.turn = 'cpu';
-      setStatus("CPU is taking its turn...");
-      setTimeout(cpuTurn, 850);
+      advanceTurn();
     }
 
     function selectWildSuit(suit) {
+      playSound('card');
       state.activeSuit = suit;
       document.getElementById('suit-modal').classList.add('hidden');
       document.getElementById('suit-modal').classList.remove('flex');
-      setStatus(`You changed the active suit to ${suit.toUpperCase()}! CPU's turn.`);
+      setStatus(`You changed the active suit to ${suit.toUpperCase()}!`);
       render();
 
-      state.turn = 'cpu';
-      setTimeout(cpuTurn, 850);
+      advanceTurn();
     }
 
     function playerDrawCard() {
-      if (state.turn !== 'player' || state.gameOver) return;
+      if (state.turnIndex !== 0 || state.gameOver) return;
       
-      // Check if player has any playable card
       const hasPlayable = state.playerHand.some(c => isCardPlayable(c));
       if (hasPlayable) {
         setStatus("You have playable cards in your hand! You cannot draw.");
@@ -426,43 +607,55 @@
         reshuffleDeck();
         if (state.deck.length === 0) {
           setStatus("Stock pile is empty! Turn skipped.");
-          state.turn = 'cpu';
-          setTimeout(cpuTurn, 850);
+          advanceTurn();
           return;
         }
       }
 
+      playSound('card');
       const drawn = state.deck.pop();
       state.playerHand.push(drawn);
       setStatus(`You drew ${drawn.label}${drawn.symbol}.`);
       render();
 
-      // If drawn card is playable, let player play or click again; otherwise auto-pass or let them play if valid
       if (!isCardPlayable(drawn)) {
-        setStatus(`Drawn ${drawn.label}${drawn.symbol} is not playable. Turn passed to CPU.`);
-        state.turn = 'cpu';
-        setTimeout(cpuTurn, 850);
+        setStatus(`Drawn ${drawn.label}${drawn.symbol} is not playable. Turn passed.`);
+        advanceTurn();
       }
     }
 
     function reshuffleDeck() {
       if (state.discardPile.length <= 1) return;
+      playSound('shuffle');
       const topCard = state.discardPile.pop();
       state.deck = [...state.discardPile];
       state.discardPile = [topCard];
-      // Shuffle deck
       for (let i = state.deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
       }
     }
 
+    function advanceTurn() {
+      if (state.gameOver) return;
+      state.turnIndex = (state.turnIndex + 1) % totalPlayers;
+      render();
+
+      if (state.turnIndex === 0) {
+        setStatus("Your turn! Match the top card's rank or suit, or play an 8.");
+      } else {
+        setStatus(`Bot ${state.turnIndex} is taking its turn...`);
+        setTimeout(cpuTurn, 850);
+      }
+    }
+
     function cpuTurn() {
       if (state.gameOver) return;
+      const cpuIdx = state.turnIndex - 1;
+      const hand = state.cpuHands[cpuIdx];
 
-      // Find all playable cards for CPU
       const playableIndices = [];
-      state.cpuHand.forEach((c, idx) => {
+      hand.forEach((c, idx) => {
         const topCard = state.discardPile[state.discardPile.length - 1];
         let playable = false;
         if (c.rank === 8) playable = true;
@@ -473,24 +666,23 @@
       });
 
       if (playableIndices.length > 0) {
-        // Pick first playable card (prioritize non-8s first if possible)
-        let chosenIdx = playableIndices.find(idx => state.cpuHand[idx].rank !== 8);
+        let chosenIdx = playableIndices.find(idx => hand[idx].rank !== 8);
         if (chosenIdx === undefined) chosenIdx = playableIndices[0];
 
-        const card = state.cpuHand.splice(chosenIdx, 1)[0];
+        playSound('card');
+        const card = hand.splice(chosenIdx, 1)[0];
         state.discardPile.push(card);
         state.activeSuit = null;
 
-        if (state.cpuHand.length === 0) {
+        if (hand.length === 0) {
           render();
-          endGame('cpu');
+          endGame(state.turnIndex);
           return;
         }
 
         if (card.rank === 8) {
-          // CPU picks suit it has the most of
           const suitCounts = { spades: 0, hearts: 0, clubs: 0, diamonds: 0 };
-          state.cpuHand.forEach(c => suitCounts[c.suit]++);
+          hand.forEach(c => suitCounts[c.suit]++);
           let bestSuit = 'spades';
           let maxCount = -1;
           for (const s of SUITS) {
@@ -500,54 +692,55 @@
             }
           }
           state.activeSuit = bestSuit;
-          setStatus(`CPU played an 8 and called ${bestSuit.toUpperCase()}! Your turn.`);
+          setStatus(`Bot ${state.turnIndex} played an 8 and called ${bestSuit.toUpperCase()}!`);
         } else {
-          setStatus(`CPU played ${card.label}${card.symbol}. Your turn!`);
+          setStatus(`Bot ${state.turnIndex} played ${card.label}${card.symbol}.`);
         }
 
-        state.turn = 'player';
         render();
+        setTimeout(advanceTurn, 900);
       } else {
-        // CPU must draw until playable or stock empty
         if (state.deck.length === 0) reshuffleDeck();
         if (state.deck.length > 0) {
+          playSound('card');
           const drawn = state.deck.pop();
-          state.cpuHand.push(drawn);
+          hand.push(drawn);
           
-          // Check if drawn card is playable
           const topCard = state.discardPile[state.discardPile.length - 1];
           let playable = (drawn.rank === 8) || (state.activeSuit ? drawn.suit === state.activeSuit : (drawn.rank === topCard.rank || drawn.suit === topCard.suit));
 
           if (playable) {
-            state.cpuHand.pop();
+            hand.pop();
             state.discardPile.push(drawn);
             state.activeSuit = null;
             if (drawn.rank === 8) {
               state.activeSuit = 'spades';
             }
-            setStatus(`CPU drew and played ${drawn.label}${drawn.symbol}. Your turn!`);
+            setStatus(`Bot ${state.turnIndex} drew and played ${drawn.label}${drawn.symbol}.`);
           } else {
-            setStatus(`CPU drew a card and passed. Your turn!`);
+            setStatus(`Bot ${state.turnIndex} drew a card and passed.`);
           }
         } else {
-          setStatus(`CPU had no moves and stock was empty. Your turn!`);
+          setStatus(`Bot ${state.turnIndex} had no moves and stock was empty.`);
         }
 
-        state.turn = 'player';
         render();
+        setTimeout(advanceTurn, 900);
       }
     }
 
-    function endGame(winner) {
+    function endGame(winnerIndex) {
       state.gameOver = true;
       const title = document.getElementById('win-title');
       const subtitle = document.getElementById('win-subtitle');
-      if (winner === 'player') {
+      if (winnerIndex === 0) {
+        playSound('win');
         title.textContent = "You Won!";
         subtitle.textContent = "Congratulations! You successfully shed all your cards first.";
       } else {
-        title.textContent = "CPU Won!";
-        subtitle.textContent = "The CPU got rid of all its cards first. Better luck next time!";
+        playSound('lose');
+        title.textContent = `Bot ${winnerIndex} Won!`;
+        subtitle.textContent = `Bot ${winnerIndex} got rid of all its cards first. Better luck next time!`;
       }
 
       const modal = document.getElementById('win-modal');
@@ -562,7 +755,16 @@
     }
 
     function createCardHTML(card, extraClasses = '') {
-      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      const settings = getUserSettings();
+      let colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+
+      if (settings.cardFace === 'fourcolor') {
+        if (card.suit === 'spades') colorClass = 'text-slate-900';
+        if (card.suit === 'hearts') colorClass = 'text-red-600';
+        if (card.suit === 'clubs') colorClass = 'text-emerald-600';
+        if (card.suit === 'diamonds') colorClass = 'text-blue-600';
+      }
+
       return `
         <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}">
           <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm">
@@ -580,12 +782,89 @@
       `;
     }
 
+    function buildSideCpuPanel(cpuIdx) {
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'blue'}`;
+      const isTurn = (state.turnIndex === cpuIdx + 1);
+      const cardCount = state.cpuHands[cpuIdx].length;
+      const overlapClass = cardCount > 5 ? '-mt-9 sm:-mt-11 first:mt-0' : '-mt-6 sm:-mt-7 first:mt-0';
+
+      return `
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-between h-full transition-all ${isTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}">
+          <div class="text-center mb-2">
+            <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-sky-200">
+              Bot ${cpuIdx + 1}
+            </div>
+            <div class="text-xs text-sky-200/70 font-semibold">
+              ${cardCount} cards
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center justify-center my-auto py-3 w-full">
+            ${cardCount > 0 
+              ? state.cpuHands[cpuIdx].map(() => `
+                  <div>
+                    <div class="playing-card ${backClass} sideways ${overlapClass}"></div>
+                  </div>
+                `).join('')
+              : `<div class="text-xs text-emerald-200/50 italic py-4">Finished!</div>`
+            }
+          </div>
+        </div>
+      `;
+    }
+
     function render() {
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'blue'}`;
+
+      const stockPileEl = document.getElementById('stock-pile');
+      if (stockPileEl) {
+        stockPileEl.className = `playing-card ${backClass} flex items-center justify-center hover:scale-105 transition-transform shadow-lg`;
+      }
+
       document.getElementById('stock-count').textContent = state.deck.length;
       document.getElementById('player-card-count').textContent = state.playerHand.length;
-      document.getElementById('cpu-card-count').textContent = state.cpuHand.length;
 
-      // Active suit indicator
+      const numCPUs = totalPlayers - 1;
+      const topCpuWrapper = document.getElementById('top-cpu-wrapper');
+      const cpuHandTopEl = document.getElementById('cpu-hand-0');
+      const cpuLabelTopEl = document.getElementById('cpu-label-top');
+
+      const leftSlot = document.getElementById('cpu-left-slot');
+      const rightSlot = document.getElementById('cpu-right-slot');
+
+      leftSlot.innerHTML = '';
+      rightSlot.innerHTML = '';
+      leftSlot.className = 'w-full flex-shrink-0 hidden';
+      rightSlot.className = 'w-full flex-shrink-0 hidden';
+
+      if (numCPUs === 1) {
+        const isTurn = (state.turnIndex === 1);
+        topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
+        cpuLabelTopEl.textContent = `Bot 1 (${state.cpuHands[0].length} cards)`;
+        cpuHandTopEl.innerHTML = state.cpuHands[0].map(() => `<div class="playing-card ${backClass}"></div>`).join('');
+      } else if (numCPUs === 2) {
+        leftSlot.className = 'w-full flex-shrink-0 block';
+        leftSlot.innerHTML = buildSideCpuPanel(0);
+
+        const isTopTurn = (state.turnIndex === 2);
+        topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTopTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
+        cpuLabelTopEl.textContent = `Bot 2 (${state.cpuHands[1].length} cards)`;
+        cpuHandTopEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card ${backClass}"></div>`).join('');
+      } else if (numCPUs === 3) {
+        leftSlot.className = 'w-full flex-shrink-0 block';
+        leftSlot.innerHTML = buildSideCpuPanel(0);
+
+        const isTopTurn = (state.turnIndex === 2);
+        topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTopTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
+        cpuLabelTopEl.textContent = `Bot 2 (${state.cpuHands[1].length} cards)`;
+        cpuHandTopEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card ${backClass}"></div>`).join('');
+
+        rightSlot.className = 'w-full flex-shrink-0 block';
+        rightSlot.innerHTML = buildSideCpuPanel(2);
+      }
+
       const suitIndicator = document.getElementById('active-suit-indicator');
       if (state.activeSuit) {
         suitIndicator.classList.remove('hidden');
@@ -594,22 +873,21 @@
         suitIndicator.classList.add('hidden');
       }
 
-      // CPU Hand
-      const cpuHandEl = document.getElementById('cpu-hand');
-      cpuHandEl.innerHTML = state.cpuHand.map(() => `<div class="playing-card face-down"></div>`).join('');
-
-      // Discard Top Card
       const discardSlot = document.getElementById('discard-slot');
       const topCard = state.discardPile[state.discardPile.length - 1];
       discardSlot.innerHTML = createCardHTML(topCard);
 
-      // Player Hand
       const playerHandEl = document.getElementById('player-hand');
       playerHandEl.innerHTML = state.playerHand.map((c, idx) => {
-        const playable = (state.turn === 'player' && isCardPlayable(c) && !state.gameOver);
+        const playable = (state.turnIndex === 0 && isCardPlayable(c) && !state.gameOver);
         return `<div onclick="playerPlayCard(${idx})">${createCardHTML(c, playable ? 'playable' : 'disabled-card')}</div>`;
       }).join('');
     }
+
+    // Listen to global settings changes in real time
+    window.addEventListener('gameSettingsChanged', () => {
+      render();
+    });
 
     newGame();
   </script>

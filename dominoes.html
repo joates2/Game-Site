@@ -53,39 +53,81 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* Domino Tile Styling */
+    /* Solid Board Style on Player's Hand linked to felt color */
+    .solid-hand {
+      background: var(--felt-mid);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Bigger Domino Tile Styling */
     .domino-tile {
       background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       color: #0f172a;
       border: 2px solid #cbd5e1;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
+      font-size: 1.15rem;
       cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
     }
 
     .domino-tile:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
       border-color: #fbbf24;
     }
 
     .domino-tile.selected {
       border-color: #fbbf24;
-      box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
-      transform: translateY(-5px);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.7);
+      transform: translateY(-6px);
     }
 
     .domino-horizontal {
-      width: 60px;
-      height: 32px;
+      width: 76px;
+      height: 40px;
       flex-direction: row;
-      gap: 4px;
+      gap: 6px;
+    }
+
+    .domino-vertical {
+      width: 40px;
+      height: 76px;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    /* Correct High Contrast Selectors matching settings.js (.high-contrast-cards on <html>) */
+    html.high-contrast-cards .domino-tile,
+    body.dark-pips .domino-tile,
+    body.high-contrast .domino-tile {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+      color: #f8fafc !important;
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    html.high-contrast-cards .domino-tile span,
+    body.dark-pips .domino-tile span,
+    body.high-contrast .domino-tile span {
+      color: #f8fafc !important;
+    }
+
+    .player-seat {
+      transition: all 0.3s ease;
+    }
+    .player-seat.active-turn:not(#seat-player) {
+      border-color: #fbbf24;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+      background: rgba(20, 83, 45, 0.85);
     }
   </style>
 </head>
@@ -97,7 +139,7 @@
   <!-- MAIN WRAPPER -->
   <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-4 py-4 sm:py-6">
     
-    <!-- TOP NAVBAR (Home Page Banner - Clickable to Home) -->
+    <!-- TOP NAVBAR -->
     <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
       <a href="index.html" class="flex items-center gap-3 group cursor-pointer">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
@@ -124,19 +166,31 @@
     </nav>
 
     <!-- SECONDARY GAME SUB-BANNER -->
-    <div class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-white/15">
+    <div class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-white/15">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-base">
           <i class="fa-solid fa-dice"></i>
         </div>
         <div>
           <h2 class="text-base sm:text-lg font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Dominoes</h2>
-          <span id="sub-status-text" class="text-xs text-emerald-200/80 font-medium">Your Turn (Select a tile)</span>
+          <span id="player-mode-label" class="text-xs text-emerald-200/80 font-medium">2-Player Mode</span>
         </div>
       </div>
       
-      <!-- Sub-banner Action Buttons (Hint, Rules, New Game) -->
+      <!-- Sub-banner Action Buttons -->
       <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-black/40 px-2.5 py-1 rounded-xl border border-white/15">
+          <i class="fa-solid fa-users text-amber-400 text-xs"></i>
+          <select id="player-count-select" aria-label="Number of players" class="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer">
+            <option value="2" class="bg-slate-900 text-white" selected>2 Players</option>
+            <option value="3" class="bg-slate-900 text-white">3 Players</option>
+            <option value="4" class="bg-slate-900 text-white">4 Players</option>
+          </select>
+        </div>
+        <button id="undo-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-rotate-left text-amber-400"></i>
+          <span>Undo</span>
+        </button>
         <button id="hint-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-lightbulb text-amber-400"></i>
           <span>Hint</span>
@@ -152,51 +206,89 @@
       </div>
     </div>
 
-    <!-- GAME CONTAINER -->
-    <main class="flex-1 flex flex-col gap-6 pb-12">
+    <!-- GAME TABLE LAYOUT -->
+    <main class="flex-1 flex flex-col gap-4 pb-8">
       
-      <!-- BOARD PLAY AREA -->
-      <div class="glass-panel rounded-3xl p-6 border border-white/15 flex flex-col gap-8 shadow-2xl relative min-h-[420px] justify-between">
+      <!-- TOP SEAT (Across) -->
+      <div class="flex justify-center">
+        <div id="seat-top" class="player-seat glass-panel rounded-2xl px-4 py-2 border border-white/15 flex items-center gap-3 shadow-lg">
+          <div class="w-7 h-7 rounded-full bg-emerald-700/50 border border-emerald-400/40 flex items-center justify-center text-amber-300 font-bold text-xs">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <h4 id="top-name" class="text-xs font-bold text-amber-300 uppercase">Player 2 (Across)</h4>
+            <span class="text-[11px] text-emerald-200/80">Tiles in hand: <strong id="top-count" class="text-white">7</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DYNAMIC STATUS MESSAGE -->
+      <div class="flex justify-center px-2">
+        <div class="glass-panel px-4 py-1.5 rounded-xl border border-white/15 shadow-md">
+          <span id="sub-status-text" class="text-xs font-semibold text-amber-300 tracking-wide">Your turn! Select or drag a tile to the board.</span>
+        </div>
+      </div>
+
+      <!-- MIDDLE ROW: LEFT SEAT, CENTRAL BOARD, RIGHT SEAT -->
+      <div class="flex items-center justify-between gap-4">
         
-        <!-- BOARD LAYOUT TRACK -->
-        <div class="flex flex-col gap-3 my-auto">
-          <div class="flex items-center justify-between text-xs text-emerald-200/70 font-semibold px-2">
-            <span>Layout Open Ends: <strong id="ends-display" class="text-amber-300 font-bold">None</strong></span>
-            <div class="flex gap-2">
-              <button id="play-left-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs cursor-pointer shadow">Play Left End</button>
-              <button id="play-right-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs cursor-pointer shadow">Play Right End</button>
-            </div>
+        <!-- LEFT SEAT -->
+        <div id="seat-left" class="player-seat glass-panel rounded-2xl p-3 border border-white/15 flex flex-col items-center gap-2 shadow-lg hidden min-w-[130px]">
+          <div class="w-8 h-8 rounded-full bg-emerald-700/50 border border-emerald-400/40 flex items-center justify-center text-amber-300 font-bold text-xs">
+            <i class="fa-solid fa-user"></i>
           </div>
-          <div id="board-track" class="flex flex-wrap gap-3 items-center justify-center min-h-[140px] p-4 bg-black/30 rounded-2xl border border-white/10 overflow-x-auto">
-            <span class="text-xs text-emerald-200/40 italic">Board is empty. Play any tile to start!</span>
+          <div class="text-center">
+            <h4 id="left-name" class="text-xs font-bold text-amber-300 uppercase">Player 2 (Left)</h4>
+            <span class="text-[11px] text-emerald-200/80">Tiles: <strong id="left-count" class="text-white">5</strong></span>
           </div>
         </div>
 
-        <!-- PLAYER HAND -->
-        <div class="flex flex-col gap-3 pt-4 border-t border-white/15">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
-              <i class="fa-solid fa-hand-holding text-amber-400"></i>
-              <span>Your Hand (<span id="hand-count">0</span> tiles)</span>
-            </h3>
-            <div class="flex items-center gap-3 text-emerald-200/90 text-xs">
-              <span>Boneyard: <strong id="boneyard-count" class="text-white">14</strong></span>
-              <span>AI Tiles: <strong id="ai-count" class="text-white">7</strong></span>
-              <button id="draw-btn" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3.5 py-1.5 rounded-xl text-xs transition-all border border-white/15 flex items-center gap-1.5 cursor-pointer">
-                <i class="fa-solid fa-plus"></i>
-                <span>Draw from Boneyard</span>
-              </button>
-            </div>
+        <!-- CENTRAL BOARD CONTAINER -->
+        <div id="board-container" class="glass-panel rounded-3xl p-6 flex-1 flex flex-col min-h-[220px] justify-center items-center shadow-2xl board-drop-target">
+          <div id="board-track" class="flex flex-wrap gap-3 items-center justify-center min-h-[140px] w-full p-2 overflow-x-auto">
+            <span class="text-sm text-emerald-200/60 italic">Board is empty. Play the highest double or heaviest tile to start!</span>
           </div>
-          <div id="player-hand" class="flex flex-wrap gap-3 items-center min-h-[80px] p-3 bg-black/30 rounded-2xl border border-white/10 overflow-x-auto"></div>
         </div>
 
+        <!-- RIGHT SEAT -->
+        <div id="seat-right" class="player-seat glass-panel rounded-2xl p-3 border border-white/15 flex flex-col items-center gap-2 shadow-lg hidden min-w-[130px]">
+          <div class="w-8 h-8 rounded-full bg-emerald-700/50 border border-emerald-400/40 flex items-center justify-center text-amber-300 font-bold text-xs">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="text-center">
+            <h4 id="right-name" class="text-xs font-bold text-amber-300 uppercase">Player 4 (Right)</h4>
+            <span class="text-[11px] text-emerald-200/80">Tiles: <strong id="right-count" class="text-white">5</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MIDDLE CONTROLS: DRAW FROM BONEYARD BUTTON BETWEEN BOARD & HAND -->
+      <div class="flex items-center justify-center gap-4 py-1">
+        <div class="glass-panel px-4 py-2 rounded-2xl border border-white/15 flex items-center gap-4 shadow-lg text-xs">
+          <span class="text-emerald-200/90 font-medium">Boneyard Remaining: <strong id="boneyard-count" class="text-white">14</strong> tiles</span>
+          <button id="draw-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-1.5 rounded-xl transition-all shadow flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-plus"></i>
+            <span>Draw from Boneyard</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM SEAT (YOUR HAND) -->
+      <div id="seat-player" class="player-seat solid-hand rounded-3xl p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-hand-holding text-amber-400"></i>
+            <span>Your Hand (<span id="hand-count">0</span> tiles)</span>
+          </h3>
+        </div>
+        <div id="player-hand" class="flex flex-wrap gap-3 items-center min-h-[90px] p-2 overflow-x-auto"></div>
       </div>
 
     </main>
 
     <!-- FOOTER -->
-    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
+    <footer class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200/70 shadow-xl select-none">
       <div class="flex items-center gap-2">
         <i class="fa-solid fa-crown text-amber-400"></i>
         <span>&copy; 2026 <strong class="text-amber-300 font-semibold">(Website Name)</strong>. All rights reserved.</span>
@@ -220,16 +312,22 @@
   <div id="rules-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-white/20 shadow-2xl flex flex-col gap-4">
       <div class="flex justify-between items-center border-b border-white/15 pb-3">
-        <h3 class="text-lg font-bold text-amber-300 uppercase" style="font-family: 'Cinzel', serif;">Dominoes Rules</h3>
+        <h3 class="text-lg font-bold text-amber-300 uppercase" style="font-family: 'Cinzel', serif;">Dominoes Draw Game Rules</h3>
         <button id="close-rules" class="text-emerald-200 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-2">
-        <p><strong>Objective:</strong> Be the first player to empty your hand by matching tile end numbers to the open ends on the board.</p>
-        <p><strong>Gameplay:</strong> 
-          <br>• Select a tile from your hand, then click either <strong>Play Left End</strong> or <strong>Play Right End</strong>.
-          <br>• The matching number must equal the open end of the layout.
+        <p><strong>Setup &amp; Tiles:</strong> 
+          <br>• <strong>2 Players:</strong> Each player is dealt 7 tiles.
+          <br>• <strong>3 or 4 Players:</strong> Each player is dealt 5 tiles.
+          <br>• Remaining tiles are placed face down in the boneyard.
         </p>
-        <p><strong>Drawing:</strong> If you have no playable tiles, you must draw from the boneyard until you can play or the boneyard is empty.</p>
+        <p><strong>First Move:</strong> The player holding the highest double plays first. If no player holds a double, the player with the heaviest (highest pip total) tile starts.</p>
+        <p><strong>Gameplay &amp; Turns:</strong> 
+          <br>• Play proceeds clockwise around the table.
+          <br>• Players match a tile's end number to either open end of the domino train on the board.
+          <br>• You can drag and drop tiles onto the board or click a tile in your hand then click the closest open end on the board.</p>
+        <p><strong>Drawing from Boneyard:</strong> If you cannot make a valid move on your turn, you must draw tiles from the boneyard until you find a playable tile or the boneyard is empty.</p>
+        <p><strong>Winning the Round:</strong> The first player to successfully empty their hand wins the round!</p>
       </div>
       <button id="close-rules-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer">Got It!</button>
     </div>
@@ -238,42 +336,185 @@
   <!-- SHARED GLOBAL SETTINGS SCRIPT -->
   <script src="settings.js"></script>
 
-  <!-- DOMINOES GAME LOGIC -->
+  <!-- DOMINOES GAME LOGIC WITH SOUND & UNDO -->
   <script>
     let playerHand = [];
-    let aiHand = [];
+    let aiHands = []; 
     let boneyard = [];
     let board = [];
     let selectedTileIndex = null;
-    let turn = 'player';
+    let currentTurnIndex = 0; // 0 = Player, 1..N = AI opponents
+    let totalPlayers = 2;
     let gameOver = false;
+    let historyState = null; // Stores state for Undo
 
     const playerHandEl = document.getElementById('player-hand');
     const boardTrackEl = document.getElementById('board-track');
+    const boardContainer = document.getElementById('board-container');
     const handCountEl = document.getElementById('hand-count');
-    const aiCountEl = document.getElementById('ai-count');
     const boneyardCountEl = document.getElementById('boneyard-count');
-    const endsDisplayEl = document.getElementById('ends-display');
+    const playerModeLabel = document.getElementById('player-mode-label');
     const subStatusText = document.getElementById('sub-status-text');
+    const playerCountSelect = document.getElementById('player-count-select');
+
+    const seatTop = document.getElementById('seat-top');
+    const seatLeft = document.getElementById('seat-left');
+    const seatRight = document.getElementById('seat-right');
+    const seatPlayer = document.getElementById('seat-player');
+
+    const topCount = document.getElementById('top-count');
+    const leftCount = document.getElementById('left-count');
+    const rightCount = document.getElementById('right-count');
+    const topName = document.getElementById('top-name');
+    const leftName = document.getElementById('left-name');
+    const rightName = document.getElementById('right-name');
+
+    // Web Audio API Sound Generator for Dominoes
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTileSound(type = 'click') {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      } else if (type === 'place') {
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } else if (type === 'draw') {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.06);
+      }
+    }
+
+    function saveStateForUndo() {
+      historyState = {
+        playerHand: JSON.parse(JSON.stringify(playerHand)),
+        aiHands: JSON.parse(JSON.stringify(aiHands)),
+        boneyard: JSON.parse(JSON.stringify(boneyard)),
+        board: JSON.parse(JSON.stringify(board)),
+        currentTurnIndex: currentTurnIndex,
+        gameOver: gameOver
+      };
+    }
 
     function initGame() {
+      totalPlayers = parseInt(playerCountSelect.value);
+      const tilesPerPlayer = totalPlayers === 2 ? 7 : 5;
+
+      playerModeLabel.textContent = totalPlayerModeText(totalPlayers);
+
+      if (totalPlayers === 2) {
+        seatTop.classList.remove('hidden');
+        seatLeft.classList.add('hidden');
+        seatRight.classList.add('hidden');
+        topName.textContent = "Player 2 (Across)";
+      } else if (totalPlayers === 3) {
+        seatTop.classList.remove('hidden');
+        seatLeft.classList.remove('hidden');
+        seatRight.classList.add('hidden');
+        leftName.textContent = "Player 2 (Left)";
+        topName.textContent = "Player 3 (Across)";
+      } else {
+        seatTop.classList.remove('hidden');
+        seatLeft.classList.remove('hidden');
+        seatRight.classList.remove('hidden');
+        leftName.textContent = "Player 2 (Left)";
+        topName.textContent = "Player 3 (Across)";
+        rightName.textContent = "Player 4 (Right)";
+      }
+
       let allTiles = [];
       for (let i = 0; i <= 6; i++) {
         for (let j = i; j <= 6; j++) {
-          allTiles.push({ left: i, right: j });
+          allTiles.push({ left: i, right: j, isDouble: i === j });
         }
       }
       allTiles.sort(() => Math.random() - 0.5);
 
-      playerHand = allTiles.splice(0, 7);
-      aiHand = allTiles.splice(0, 7);
+      playerHand = allTiles.splice(0, tilesPerPlayer);
+      aiHands = [];
+      for (let p = 1; p < totalPlayers; p++) {
+        aiHands.push(allTiles.splice(0, tilesPerPlayer));
+      }
       boneyard = allTiles;
       board = [];
       selectedTileIndex = null;
       gameOver = false;
-      turn = 'player';
+      historyState = null;
+
+      let allHands = [playerHand, ...aiHands];
+      let maxScore = -1;
+      let starterPlayer = 0;
+
+      allHands.forEach((hand, hIdx) => {
+        const scoreObj = getFirstMoveScore(hand);
+        if (scoreObj.score > maxScore) {
+          maxScore = scoreObj.score;
+          starterPlayer = hIdx;
+        }
+      });
+
+      currentTurnIndex = starterPlayer;
+
+      if (currentTurnIndex === 0) {
+        subStatusText.textContent = "Your turn! Select or drag a tile to the board.";
+      } else {
+        subStatusText.textContent = `Player ${currentTurnIndex + 1}'s turn...`;
+        setTimeout(makeAIMove, 800);
+      }
 
       render();
+    }
+
+    function totalPlayerModeText(count) {
+      if (count === 2) return "2-Player Mode";
+      if (count === 3) return "3-Player Mode";
+      return "4-Player Mode";
+    }
+
+    function getFirstMoveScore(hand) {
+      let highestDouble = -1;
+      let heaviestTotal = -1;
+      let bestTileIndex = 0;
+
+      hand.forEach((tile, idx) => {
+        if (tile.isDouble && tile.left > highestDouble) {
+          highestDouble = tile.left;
+          bestTileIndex = idx;
+        }
+      });
+
+      if (highestDouble !== -1) {
+        return { score: 100 + highestDouble, index: bestTileIndex };
+      }
+
+      hand.forEach((tile, idx) => {
+        const total = tile.left + tile.right;
+        if (total > heaviestTotal) {
+          heaviestTotal = total;
+          bestTileIndex = idx;
+        }
+      });
+
+      return { score: heaviestTotal, index: bestTileIndex };
     }
 
     function getLeftEnd() {
@@ -293,47 +534,131 @@
       } else {
         playerHand.forEach((tile, index) => {
           const tileDiv = document.createElement('div');
-          tileDiv.className = `domino-tile domino-horizontal ${selectedTileIndex === index ? 'selected' : ''}`;
-          tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
-          tileDiv.addEventListener('click', () => {
+          const isVert = tile.isDouble;
+          tileDiv.className = `domino-tile ${isVert ? 'domino-vertical' : 'domino-horizontal'} ${selectedTileIndex === index ? 'selected' : ''}`;
+          tileDiv.setAttribute('draggable', 'true');
+          tileDiv.dataset.index = index;
+
+          if (isVert) {
+            tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light text-[11px]">―</span><span>${tile.right}</span>`;
+          } else {
+            tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+          }
+
+          // Click selection
+          tileDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentTurnIndex !== 0 || gameOver) return;
+            playTileSound('click');
             selectedTileIndex = selectedTileIndex === index ? null : index;
             render();
           });
+
+          // Drag events
+          tileDiv.addEventListener('dragstart', (e) => {
+            if (currentTurnIndex !== 0 || gameOver) {
+              e.preventDefault();
+              return;
+            }
+            playTileSound('click');
+            selectedTileIndex = index;
+            e.dataTransfer.setData('text/plain', index);
+          });
+
           playerHandEl.appendChild(tileDiv);
         });
       }
+
       handCountEl.textContent = playerHand.length;
-      aiCountEl.textContent = aiHand.length;
       boneyardCountEl.textContent = boneyard.length;
 
+      if (totalPlayers === 2) {
+        topCount.textContent = aiHands[0].length;
+      } else if (totalPlayers === 3) {
+        leftCount.textContent = aiHands[0].length;
+        topCount.textContent = aiHands[1].length;
+      } else {
+        leftCount.textContent = aiHands[0].length;
+        topCount.textContent = aiHands[1].length;
+        rightCount.textContent = aiHands[2].length;
+      }
+
+      // Highlight active opponent seats (never the player)
+      seatTop.classList.remove('active-turn');
+      seatRight.classList.remove('active-turn');
+      seatLeft.classList.remove('active-turn');
+
+      if (totalPlayers === 2 && currentTurnIndex === 1) seatTop.classList.add('active-turn');
+      if (totalPlayers === 3) {
+        if (currentTurnIndex === 1) seatLeft.classList.add('active-turn');
+        if (currentTurnIndex === 2) seatTop.classList.add('active-turn');
+      }
+      if (totalPlayers === 4) {
+        if (currentTurnIndex === 1) seatLeft.classList.add('active-turn');
+        if (currentTurnIndex === 2) seatTop.classList.add('active-turn');
+        if (currentTurnIndex === 3) seatRight.classList.add('active-turn');
+      }
+
+      // Render Board Track
       boardTrackEl.innerHTML = '';
       if (board.length === 0) {
-        boardTrackEl.innerHTML = '<span class="text-xs text-emerald-200/40 italic">Board is empty. Select a tile to start!</span>';
-        endsDisplayEl.textContent = 'None (Any tile)';
+        boardTrackEl.innerHTML = '<span class="text-sm text-emerald-200/60 italic">Board is empty. Play the highest double or heaviest tile to start!</span>';
       } else {
-        board.forEach(tile => {
+        board.forEach((tile, bIdx) => {
           const tileDiv = document.createElement('div');
-          tileDiv.className = 'domino-tile domino-horizontal text-xs';
-          tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+          const isVert = tile.isDouble;
+          tileDiv.className = `domino-tile ${isVert ? 'domino-vertical' : 'domino-horizontal'}`;
+          if (isVert) {
+            tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light text-[11px]">―</span><span>${tile.right}</span>`;
+          } else {
+            tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+          }
+
+          // Click on board ends when a tile is selected in hand
+          if (bIdx === 0 || bIdx === board.length - 1) {
+            tileDiv.title = "Click to play on this end";
+            tileDiv.style.cursor = 'pointer';
+            tileDiv.addEventListener('click', () => {
+              if (selectedTileIndex !== null) {
+                playTile(bIdx === 0 ? 'left' : 'right');
+              }
+            });
+          }
+
           boardTrackEl.appendChild(tileDiv);
         });
-        endsDisplayEl.textContent = `${getLeftEnd()} ... ${getRightEnd()}`;
       }
 
       if (gameOver) return;
 
-      if (turn === 'player') {
+      if (currentTurnIndex === 0) {
         subStatusText.textContent = selectedTileIndex !== null
-          ? "Tile selected! Click 'Play Left End' or 'Play Right End'."
-          : "Your Turn: Select a tile from your hand.";
-      } else {
-        subStatusText.textContent = "AI is thinking...";
-        setTimeout(makeAIMove, 800);
+          ? "Tile selected! Click the left/right end on the board or drag it there."
+          : "Your turn! Select or drag a tile to the board.";
       }
     }
 
+    // Drag and Drop Board Listeners
+    boardContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    boardContainer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (currentTurnIndex !== 0 || selectedTileIndex === null || gameOver) return;
+
+      const rect = boardContainer.getBoundingClientRect();
+      const dropX = e.clientX - rect.left;
+      const midX = rect.width / 2;
+      const targetSide = dropX < midX ? 'left' : 'right';
+
+      playTile(targetSide);
+    });
+
     function playTile(side) {
-      if (turn !== 'player' || selectedTileIndex === null || gameOver) return;
+      if (currentTurnIndex !== 0 || selectedTileIndex === null || gameOver) return;
+
+      saveStateForUndo();
 
       const tile = playerHand[selectedTileIndex];
       let playedTile = { ...tile };
@@ -342,6 +667,7 @@
         board.push(playedTile);
         playerHand.splice(selectedTileIndex, 1);
         selectedTileIndex = null;
+        playTileSound('place');
         checkWinCondition();
         return;
       }
@@ -356,7 +682,11 @@
           playedTile.left = tile.right;
           playedTile.right = tile.left;
         } else {
-          alert("Invalid move! Tile number does not match the left end.");
+          if (playedTile.left === rightEnd || playedTile.right === rightEnd) {
+            playTile('right');
+            return;
+          }
+          alert("Invalid move! Tile number does not match the open ends.");
           return;
         }
         board.unshift(playedTile);
@@ -367,7 +697,11 @@
           playedTile.left = tile.right;
           playedTile.right = tile.left;
         } else {
-          alert("Invalid move! Tile number does not match the right end.");
+          if (playedTile.left === leftEnd || playedTile.right === leftEnd) {
+            playTile('left');
+            return;
+          }
+          alert("Invalid move! Tile number does not match the open ends.");
           return;
         }
         board.push(playedTile);
@@ -375,89 +709,135 @@
 
       playerHand.splice(selectedTileIndex, 1);
       selectedTileIndex = null;
+      playTileSound('place');
       checkWinCondition();
     }
 
     function checkWinCondition() {
       if (playerHand.length === 0) {
-        subStatusText.textContent = "Congratulations! You emptied your hand and won!";
+        subStatusText.textContent = "Domino! You emptied your hand and won the round!";
         gameOver = true;
         render();
         return;
       }
-      turn = 'ai';
-      render();
+      advanceTurn();
+    }
+
+    function advanceTurn() {
+      currentTurnIndex = (currentTurnIndex + 1) % totalPlayers;
+      if (currentTurnIndex === 0) {
+        render();
+      } else {
+        subStatusText.textContent = `Player ${currentTurnIndex + 1} is thinking...`;
+        render();
+        setTimeout(makeAIMove, 800);
+      }
     }
 
     function makeAIMove() {
       if (gameOver) return;
 
+      const aiIdx = currentTurnIndex - 1;
+      let currentAiHand = aiHands[aiIdx];
+
       let played = false;
-      for (let i = 0; i < aiHand.length; i++) {
-        const tile = aiHand[i];
-        if (board.length === 0) {
-          board.push(tile);
-          aiHand.splice(i, 1);
-          played = true;
-          break;
+      while (!played) {
+        let bestTileIdx = -1;
+        let playSide = null;
+
+        for (let i = 0; i < currentAiHand.length; i++) {
+          const tile = currentAiHand[i];
+          if (board.length === 0) {
+            bestTileIdx = i;
+            playSide = 'left';
+            break;
+          }
+
+          const leftEnd = getLeftEnd();
+          const rightEnd = getRightEnd();
+
+          if (tile.right === leftEnd || tile.left === leftEnd) {
+            bestTileIdx = i;
+            playSide = 'left';
+            break;
+          } else if (tile.left === rightEnd || tile.right === rightEnd) {
+            bestTileIdx = i;
+            playSide = 'right';
+            break;
+          }
         }
 
-        const leftEnd = getLeftEnd();
-        const rightEnd = getRightEnd();
-
-        if (tile.right === leftEnd) {
-          board.unshift({ ...tile });
-          aiHand.splice(i, 1);
+        if (bestTileIdx !== -1) {
+          const tile = currentAiHand.splice(bestTileIdx, 1)[0];
+          if (board.length === 0) {
+            board.push(tile);
+          } else if (playSide === 'left') {
+            const leftEnd = getLeftEnd();
+            if (tile.right === leftEnd) {
+              board.unshift({ ...tile });
+            } else {
+              board.unshift({ left: tile.right, right: tile.left, isDouble: tile.isDouble });
+            }
+          } else {
+            const rightEnd = getRightEnd();
+            if (tile.left === rightEnd) {
+              board.push({ ...tile });
+            } else {
+              board.push({ left: tile.right, right: tile.left, isDouble: tile.isDouble });
+            }
+          }
+          playTileSound('place');
           played = true;
-          break;
-        } else if (tile.left === leftEnd) {
-          board.unshift({ left: tile.right, right: tile.left });
-          aiHand.splice(i, 1);
-          played = true;
-          break;
-        } else if (tile.left === rightEnd) {
-          board.push({ ...tile });
-          aiHand.splice(i, 1);
-          played = true;
-          break;
-        } else if (tile.right === rightEnd) {
-          board.push({ left: tile.right, right: tile.left });
-          aiHand.splice(i, 1);
-          played = true;
-          break;
+        } else if (boneyard.length > 0) {
+          currentAiHand.push(boneyard.pop());
+          playTileSound('draw');
+        } else {
+          break; // Blocked / pass turn
         }
       }
 
-      if (!played && boneyard.length > 0) {
-        aiHand.push(boneyard.pop());
-      }
-
-      if (aiHand.length === 0) {
-        subStatusText.textContent = "AI emptied its hand! AI wins!";
+      if (currentAiHand.length === 0) {
+        subStatusText.textContent = `Player ${currentTurnIndex + 1} emptied their hand and won the round!`;
         gameOver = true;
         render();
         return;
       }
 
-      turn = 'player';
-      render();
+      advanceTurn();
     }
 
     // Event Listeners
-    document.getElementById('play-left-btn').addEventListener('click', () => playTile('left'));
-    document.getElementById('play-right-btn').addEventListener('click', () => playTile('right'));
-
     document.getElementById('draw-btn').addEventListener('click', () => {
-      if (turn !== 'player' || gameOver) return;
+      if (currentTurnIndex !== 0 || gameOver) return;
       if (boneyard.length === 0) {
         alert("Boneyard is empty!");
         return;
       }
+      saveStateForUndo();
       playerHand.push(boneyard.pop());
+      playTileSound('draw');
+      render();
+    });
+
+    document.getElementById('undo-btn').addEventListener('click', () => {
+      if (!historyState || gameOver) {
+        alert("No previous move to undo!");
+        return;
+      }
+      playerHand = historyState.playerHand;
+      aiHands = historyState.aiHands;
+      boneyard = historyState.boneyard;
+      board = historyState.board;
+      currentTurnIndex = historyState.currentTurnIndex;
+      gameOver = historyState.gameOver;
+      historyState = null;
+      selectedTileIndex = null;
+      playTileSound('click');
       render();
     });
 
     document.getElementById('hint-btn').addEventListener('click', () => {
+      if (currentTurnIndex !== 0 || gameOver) return;
       if (board.length === 0 && playerHand.length > 0) {
         selectedTileIndex = 0;
         render();
@@ -476,6 +856,7 @@
     });
 
     document.getElementById('new-game-btn').addEventListener('click', initGame);
+    playerCountSelect.addEventListener('change', initGame);
 
     // Rules Modal Controls
     const rulesModal = document.getElementById('rules-modal');

@@ -13,8 +13,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
 
     :root {
-      --felt-dark: #052e16;
-      --felt-mid: #064e3b;
+      --felt-dark: #032010;
+      --felt-mid: #053b1e;
       --felt-light: #047857;
     }
 
@@ -32,8 +32,8 @@
       inset: 0;
       background-image: 
         radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
-        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
-      background-size: 6px 6px, 10px 10px;
+        radial-gradient(rgba(0, 0, 0, 0.18) 1px, transparent 0);
+      background-size: 6px 6px, 12px 12px;
       pointer-events: none;
       z-index: 1;
     }
@@ -41,16 +41,26 @@
     .vignette {
       position: fixed;
       inset: 0;
-      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
       pointer-events: none;
       z-index: 2;
     }
 
+    /* Smoked translucent dark glass style */
     .glass-panel {
-      background: rgba(4, 28, 16, 0.65);
+      background: rgba(3, 18, 10, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Solid Hand Style Matching Dominoes, Cribbage, and Crazy Eights */
+    .solid-hand {
+      background: var(--felt-mid);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
 
     .playing-card {
@@ -84,10 +94,22 @@
       box-shadow: 0 0 0 3px #facc15, 0 12px 24px rgba(0, 0, 0, 0.6);
     }
 
+    /* Dynamic Card Back Colors */
     .playing-card.face-down {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
       border: 2px solid rgba(255, 255, 255, 0.28);
       cursor: default;
+    }
+    .playing-card.face-down.deck-red {
+      background: linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #7f1d1d 100%) !important;
+    }
+    .playing-card.face-down.deck-blue {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%) !important;
+    }
+    .playing-card.face-down.deck-green {
+      background: linear-gradient(135deg, #065f46 0%, #047857 50%, #064e3b 100%) !important;
+    }
+    .playing-card.face-down.deck-gold {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #92400e 100%) !important;
     }
 
     .playing-card.face-down::before {
@@ -130,6 +152,16 @@
         width: 82px;
         height: 116px;
       }
+    }
+
+    /* High Contrast / Dark Pips Mode Styling (Front Faces Only) */
+    html.high-contrast-cards .playing-card:not(.face-down) {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    html.high-contrast-cards .playing-card:not(.face-down).text-red-600 {
+      color: #f43f5e !important;
     }
   </style>
 </head>
@@ -180,25 +212,34 @@
       </div>
 
       <!-- SCOREBOARD & CONFIG -->
-      <div class="flex items-center gap-3 text-xs sm:text-sm font-semibold">
-        <div class="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
+      <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold">
+        <!-- Combined Books Display -->
+        <div class="bg-black/40 px-3 py-1.5 rounded-xl border border-white/15 flex items-center gap-2">
+          <span>You: <strong id="player-books" class="text-amber-300">0</strong></span>
+          <span id="score-item-bot-0" class="text-emerald-100">| Bot 1: <strong id="score-display-bot-0" class="text-white">0</strong></span>
+          <span id="score-item-bot-1" class="text-emerald-100 hidden">| Bot 2: <strong id="score-display-bot-1" class="text-white">0</strong></span>
+          <span id="score-item-bot-2" class="text-emerald-100 hidden">| Bot 3: <strong id="score-display-bot-2" class="text-white">0</strong></span>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-xl border border-white/15">
           <label for="player-count-select" class="text-emerald-200/70">Players:</label>
-          <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-black/50 text-amber-300 font-bold rounded-lg px-2 py-0.5 border border-white/20 focus:outline-none cursor-pointer">
+          <select id="player-count-select" onchange="changePlayerCount(this.value)" class="bg-black/60 text-amber-300 font-bold rounded-lg px-2 py-0.5 border border-white/20 focus:outline-none cursor-pointer">
             <option value="2">1 Player</option>
             <option value="3">2 Players</option>
             <option value="4">3 Players</option>
           </select>
         </div>
 
-        <div class="bg-black/30 px-3 py-1.5 rounded-xl border border-white/10">
-          <span class="text-emerald-200/70">You:</span> <span id="player-books" class="text-amber-300 font-bold">0</span> books
-        </div>
         <div class="flex items-center gap-1.5 sm:gap-2">
-          <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5">
+          <button onclick="undoMove()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-rotate-left text-white"></i>
+            <span class="hidden sm:inline">Undo</span>
+          </button>
+          <button onclick="openRulesModal()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
             <i class="fa-solid fa-book-open"></i>
             <span class="hidden sm:inline">Rules</span>
           </button>
-          <button onclick="newGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md">
+          <button onclick="newGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
             <i class="fa-solid fa-plus"></i>
             <span>New Game</span>
           </button>
@@ -255,12 +296,15 @@
 
       </div>
 
-      <!-- PLAYER HAND AREA -->
-      <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-4xl mx-auto w-full">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-300/90 mb-2">
-          Your Hand (Click a card rank to ask an opponent)
+      <!-- PLAYER HAND AREA (UPDATED TO MATCH OTHER GAME PAGES) -->
+      <div id="seat-player" class="player-seat solid-hand rounded-3xl p-4 flex flex-col gap-3 max-w-4xl mx-auto w-full">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-hand-holding text-amber-400"></i>
+            <span>Your Hand (Click a card rank to ask an opponent)</span>
+          </h3>
         </div>
-        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px]"></div>
+        <div id="player-hand" class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 min-h-[96px] sm:min-h-[116px] p-2"></div>
       </div>
 
     </main>
@@ -296,12 +340,14 @@
         </button>
       </div>
       <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
-        <p><strong class="text-amber-300">Objective:</strong> Collect the most 4-of-a-kind card books (all 4 suits of a single rank, e.g., four 7s).</p>
-        <p><strong class="text-amber-300">Asking for Cards:</strong> On your turn, click a card in your hand to ask an opponent if they have any cards of that rank. If they do, they must hand them all over to you, and you get another turn.</p>
-        <p><strong class="text-amber-300">Go Fish!:</strong> If the opponent does not have the requested rank, they will tell you to "Go Fish!". You automatically draw a card from the ocean pond. If you draw the exact card rank you asked for, you get another turn!</p>
-        <p><strong class="text-amber-300">Books:</strong> Whenever you or an opponent collect all 4 cards of a single rank, a book is automatically scored and removed from the hand.</p>
+        <p><strong class="text-amber-300">Setup & Deal:</strong> 7 cards are dealt to each player for 2–3 players, and 5 cards for 4+ players. Remaining cards form the central Fish Pond stock.</p>
+        <p><strong class="text-amber-300">Asking for Cards:</strong> On your turn, pick an opponent and ask them for a specific rank. <em class="text-amber-200">Rule:</em> You must hold at least one card of that requested rank in your own hand.</p>
+        <p><strong class="text-amber-300">If They Have It:</strong> They must hand over all cards of that rank, and you take another turn.</p>
+        <p><strong class="text-amber-300">If They Say "Go Fish!":</strong> Draw one card from the stock pond. If you draw the exact card rank you asked for, show it and take another turn! Otherwise, your turn ends.</p>
+        <p><strong class="text-amber-300">Laying Down Books:</strong> Collect all 4 cards of the same rank to immediately score a four-of-a-kind book. If your hand becomes empty, you draw new cards from the stock.</p>
+        <p><strong class="text-amber-300">Winning:</strong> The game ends when all 13 books are won. The player with the most books wins!</p>
       </div>
-      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg cursor-pointer">
         Got It
       </button>
     </div>
@@ -315,7 +361,7 @@
       </div>
       <h2 id="win-title" class="text-2xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Game Over!</h2>
       <p id="win-subtitle" class="text-sm text-emerald-100/80 mt-2">Checking final book counts...</p>
-      <button onclick="closeWinModal(); newGame();" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+      <button onclick="closeWinModal(); newGame();" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg cursor-pointer">
         Play Again
       </button>
     </div>
@@ -341,6 +387,87 @@
       gameOver: false,
       waitingForPlayerAction: true
     };
+
+    let historyState = null;
+
+    function getUserSettings() {
+      if (window.GameHubSettings && typeof window.GameHubSettings.get === 'function') {
+        return window.GameHubSettings.get();
+      }
+      try {
+        return JSON.parse(localStorage.getItem('gameHubSettings')) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    // Web Audio API Sound Generator
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playCardSound(type = 'click') {
+      const settings = getUserSettings();
+      if (settings.sound === false) return;
+
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+      } else if (type === 'place') {
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+      } else if (type === 'draw') {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+      }
+    }
+
+    function saveStateForUndo() {
+      historyState = {
+        deck: JSON.parse(JSON.stringify(state.deck)),
+        playerHand: JSON.parse(JSON.stringify(state.playerHand)),
+        cpuHands: JSON.parse(JSON.stringify(state.cpuHands)),
+        playerBooks: state.playerBooks,
+        cpuBooks: [...state.cpuBooks],
+        turnIndex: state.turnIndex,
+        gameOver: state.gameOver,
+        waitingForPlayerAction: state.waitingForPlayerAction
+      };
+    }
+
+    function undoMove() {
+      if (!historyState || state.gameOver) {
+        setStatus("No previous move to undo!");
+        return;
+      }
+      state = {
+        deck: JSON.parse(JSON.stringify(historyState.deck)),
+        playerHand: JSON.parse(JSON.stringify(historyState.playerHand)),
+        cpuHands: JSON.parse(JSON.stringify(historyState.cpuHands)),
+        playerBooks: historyState.playerBooks,
+        cpuBooks: [...historyState.cpuBooks],
+        turnIndex: historyState.turnIndex,
+        gameOver: historyState.gameOver,
+        waitingForPlayerAction: historyState.waitingForPlayerAction
+      };
+      historyState = null;
+      selectedAskRank = null;
+      playCardSound('click');
+      setStatus("Move undone! Your turn.");
+      render();
+    }
 
     function openRulesModal() {
       const modal = document.getElementById('rules-modal');
@@ -396,6 +523,7 @@
 
     function newGame() {
       selectedAskRank = null;
+      historyState = null;
       state.deck = createDeck();
       state.playerHand = [];
       state.cpuHands = [[], [], []];
@@ -422,6 +550,7 @@
       }
       checkForBooks('player');
 
+      playCardSound('click');
       setStatus("Your turn! Click any card in your hand to choose a rank.");
       setCpuActionLog("Game started. Choose a card rank to begin!");
       render();
@@ -429,6 +558,21 @@
 
     function sortHand(hand) {
       hand.sort((a, b) => a.rank - b.rank);
+    }
+
+    function checkHandRefill(who, cpuIndex = 0) {
+      const hand = who === 'player' ? state.playerHand : state.cpuHands[cpuIndex];
+      if (hand.length === 0 && state.deck.length > 0) {
+        const refillCount = Math.min(5, state.deck.length);
+        for (let i = 0; i < refillCount; i++) {
+          hand.push(state.deck.pop());
+        }
+        sortHand(hand);
+        if (who === 'player') {
+          playCardSound('draw');
+          setStatus("Your hand became empty! Drew new cards from the pond.");
+        }
+      }
     }
 
     function checkForBooks(who, cpuIndex = 0) {
@@ -450,16 +594,20 @@
         if (who === 'player') {
           state.playerHand = state.playerHand.filter(c => c.rank !== foundBookRank);
           state.playerBooks++;
+          playCardSound('place');
           setStatus(`You completed a book of ${formatRank(foundBookRank)}s! (+1 Book)`);
+          checkHandRefill('player');
         } else {
           state.cpuHands[cpuIndex] = state.cpuHands[cpuIndex].filter(c => c.rank !== foundBookRank);
           state.cpuBooks[cpuIndex]++;
+          playCardSound('place');
           setCpuActionLog(`Bot ${cpuIndex + 1} completed a book of ${formatRank(foundBookRank)}s!`);
+          checkHandRefill('cpu', cpuIndex);
         }
         render();
 
         const totalBooksCollected = state.playerBooks + state.cpuBooks.slice(0, totalPlayers - 1).reduce((a, b) => a + b, 0);
-        if (totalBooksCollected === 13) {
+        if (totalBooksCollected === 13 || (state.deck.length === 0 && state.playerHand.length === 0)) {
           endGame();
           return true;
         }
@@ -478,17 +626,20 @@
         executePlayerAsk(rank, 0);
       } else {
         state.waitingForPlayerAction = false;
+        playCardSound('click');
         setStatus(`Asking for ${rankName}s. Click which opponent to ask at their table seat!`);
         render();
       }
     }
 
     function executePlayerAsk(rank, cpuIndex) {
+      saveStateForUndo();
       state.waitingForPlayerAction = true;
       selectedAskRank = null;
       const rankName = formatRank(rank);
       const targetCpuName = `Bot ${cpuIndex + 1}`;
 
+      playCardSound('click');
       setStatus(`You asked ${targetCpuName}: "Do you have any ${rankName}s?"`);
 
       const matches = state.cpuHands[cpuIndex].filter(c => c.rank === rank);
@@ -499,12 +650,14 @@
         sortHand(state.playerHand);
 
         setTimeout(() => {
+          playCardSound('place');
           setStatus(`${targetCpuName} handed over ${matches.length} ${rankName}(s)! Take another turn.`);
           checkForBooks('player');
           render();
         }, 900);
       } else {
         setTimeout(() => {
+          playCardSound('draw');
           setStatus(`${targetCpuName} says: "Go Fish!" Drawing from the pond.`);
           setTimeout(() => playerGoFish(rank), 900);
         }, 900);
@@ -518,6 +671,7 @@
         sortHand(state.playerHand);
 
         const rankName = drawn.label;
+        playCardSound('draw');
         setStatus(`You drew a card from the pond (${rankName}).`);
         
         const matchedAsked = (drawn.rank === askedRank);
@@ -526,6 +680,7 @@
 
         setTimeout(() => {
           if (matchedAsked) {
+            playCardSound('place');
             setStatus(`Lucky! You drew the ${rankName} you asked for. Take another turn!`);
           } else {
             advanceTurn();
@@ -541,8 +696,10 @@
       state.turnIndex = (state.turnIndex + 1) % totalPlayers;
       render();
       if (state.turnIndex === 0) {
+        checkHandRefill('player');
         setStatus("Your turn! Click a card in your hand to ask.");
       } else {
+        checkHandRefill('cpu', state.turnIndex - 1);
         setStatus(`Waiting for Bot ${state.turnIndex}...`);
         setTimeout(runCpuTurn, 1000);
       }
@@ -554,8 +711,13 @@
       const cpuName = `Bot ${state.turnIndex}`;
 
       if (state.cpuHands[cpuIndex].length === 0) {
-        if (state.deck.length > 0) state.cpuHands[cpuIndex].push(state.deck.pop());
-        else { advanceTurn(); return; }
+        if (state.deck.length > 0) {
+          state.cpuHands[cpuIndex].push(state.deck.pop());
+          playCardSound('draw');
+        } else { 
+          advanceTurn(); 
+          return; 
+        }
       }
 
       const randomCard = state.cpuHands[cpuIndex][Math.floor(Math.random() * state.cpuHands[cpuIndex].length)];
@@ -580,6 +742,7 @@
 
       const askMsg = `${cpuName} asks ${targetName}: "Do you have any ${rankName}s?"`;
       setCpuActionLog(askMsg);
+      playCardSound('click');
 
       setTimeout(() => {
         if (target.type === 'player') {
@@ -589,6 +752,7 @@
             state.cpuHands[cpuIndex].push(...matches);
             sortHand(state.cpuHands[cpuIndex]);
 
+            playCardSound('place');
             const responseMsg = `You gave ${cpuName} ${matches.length} ${rankName}(s). ${cpuName} gets another turn.`;
             setStatus(responseMsg);
             checkForBooks('cpu', cpuIndex);
@@ -598,6 +762,7 @@
               setTimeout(runCpuTurn, 1500);
             }
           } else {
+            playCardSound('draw');
             const responseMsg = `You said "Go Fish!" ${cpuName} draws from the pond.`;
             setStatus(responseMsg);
 
@@ -618,6 +783,7 @@
             state.cpuHands[cpuIndex].push(...matches);
             sortHand(state.cpuHands[cpuIndex]);
 
+            playCardSound('place');
             const responseMsg = `Bot ${targetCpuIdx + 1} gave ${cpuName} ${matches.length} ${rankName}(s)!`;
             setStatus(responseMsg);
             checkForBooks('cpu', cpuIndex);
@@ -627,6 +793,7 @@
               setTimeout(runCpuTurn, 1500);
             }
           } else {
+            playCardSound('click');
             const responseMsg = `Bot ${targetCpuIdx + 1} said "Go Fish!".`;
             setStatus(responseMsg);
             setTimeout(advanceTurn, 1200);
@@ -665,7 +832,16 @@
     }
 
     function createCardHTML(card, extraClasses = '') {
-      const colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+      const settings = getUserSettings();
+      let colorClass = card.color === 'red' ? 'text-red-600' : 'text-slate-900';
+
+      if (settings.cardFace === 'fourcolor') {
+        if (card.suit === 'spades') colorClass = 'text-slate-900';
+        if (card.suit === 'hearts') colorClass = 'text-red-600';
+        if (card.suit === 'clubs') colorClass = 'text-emerald-600';
+        if (card.suit === 'diamonds') colorClass = 'text-blue-600';
+      }
+
       return `
         <div class="playing-card p-1.5 sm:p-2 flex flex-col justify-between ${colorClass} ${extraClasses}" data-rank="${card.rank}">
           <div class="flex items-center justify-between leading-none font-extrabold text-xs sm:text-sm">
@@ -684,6 +860,8 @@
     }
 
     function buildSideCpuPanel(cpuIdx) {
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'blue'}`;
       const isTurn = (state.turnIndex === cpuIdx + 1);
       const cardCount = state.cpuHands[cpuIdx].length;
       const booksCount = state.cpuBooks[cpuIdx];
@@ -704,20 +882,40 @@
 
           <div class="flex flex-col items-center justify-center my-auto py-3">
             ${cardCount > 0 
-              ? state.cpuHands[cpuIdx].map(() => `<div class="playing-card face-down sideways ${overlapClass}"></div>`).join('')
+              ? state.cpuHands[cpuIdx].map(() => `<div class="playing-card ${backClass} sideways ${overlapClass}"></div>`).join('')
               : `<div class="text-xs text-emerald-200/50 italic py-4">Empty hand</div>`
             }
           </div>
 
           ${showAskBtn 
-            ? `<button onclick="executePlayerAsk(${selectedAskRank}, ${cpuIdx})" class="mt-3 w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl shadow-md animate-pulse">Ask Bot ${cpuIdx + 1}</button>` 
+            ? `<button onclick="executePlayerAsk(${selectedAskRank}, ${cpuIdx})" class="mt-3 w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl shadow-md animate-pulse cursor-pointer">Ask Bot ${cpuIdx + 1}</button>` 
             : `<div class="h-2"></div>`
           }
         </div>
       `;
     }
 
+    function updateScoreboardUI() {
+      document.getElementById('player-books').textContent = state.playerBooks;
+      const numCPUs = totalPlayers - 1;
+      for (let i = 0; i < 3; i++) {
+        const itemEl = document.getElementById(`score-item-bot-${i}`);
+        const displayEl = document.getElementById(`score-display-bot-${i}`);
+        if (itemEl && displayEl) {
+          if (i < numCPUs) {
+            itemEl.classList.remove('hidden');
+            displayEl.textContent = state.cpuBooks[i];
+          } else {
+            itemEl.classList.add('hidden');
+          }
+        }
+      }
+    }
+
     function render() {
+      const settings = getUserSettings();
+      const backClass = `face-down deck-${settings.deck || 'blue'}`;
+
       const stockVisual = document.getElementById('stock-visual');
       stockVisual.innerHTML = '';
       const cardsLeft = state.deck.length;
@@ -727,13 +925,13 @@
       for (let i = 0; i < stackCount; i++) {
         const offset = i * 1.5;
         const cardBack = document.createElement('div');
-        cardBack.className = 'playing-card face-down w-full h-full absolute top-0 left-0';
+        cardBack.className = `playing-card ${backClass} w-full h-full absolute top-0 left-0`;
         cardBack.style.transform = `translate(-${offset}px, -${offset}px)`;
         cardBack.style.zIndex = i + 1;
         stockVisual.appendChild(cardBack);
       }
 
-      document.getElementById('player-books').textContent = state.playerBooks;
+      updateScoreboardUI();
 
       const numCPUs = totalPlayers - 1;
       const topCpuWrapper = document.getElementById('top-cpu-wrapper');
@@ -754,7 +952,7 @@
         const isTurn = (state.turnIndex === 1);
         topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
         cpuLabelEl.innerHTML = `Bot 1 (${state.cpuHands[0].length} cards in hand) — <span class="text-amber-300">${state.cpuBooks[0]} books</span>`;
-        cpuHandEl.innerHTML = state.cpuHands[0].map(() => `<div class="playing-card face-down"></div>`).join('');
+        cpuHandEl.innerHTML = state.cpuHands[0].map(() => `<div class="playing-card ${backClass}"></div>`).join('');
       } else if (numCPUs === 2) {
         leftSlot.className = 'w-full flex-shrink-0 block';
         leftSlot.innerHTML = buildSideCpuPanel(0);
@@ -762,10 +960,10 @@
         const isTopTurn = (state.turnIndex === 2);
         topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTopTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
         cpuLabelEl.innerHTML = `Bot 2 (${state.cpuHands[1].length} cards in hand) — <span class="text-amber-300">${state.cpuBooks[1]} books</span>`;
-        cpuHandEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card face-down"></div>`).join('');
+        cpuHandEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card ${backClass}"></div>`).join('');
         
         if (state.turnIndex === 0 && !state.waitingForPlayerAction && selectedAskRank !== null) {
-          cpuTopActionEl.innerHTML = `<button onclick="executePlayerAsk(${selectedAskRank}, 1)" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-md animate-pulse">Ask Bot 2</button>`;
+          cpuTopActionEl.innerHTML = `<button onclick="executePlayerAsk(${selectedAskRank}, 1)" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-md animate-pulse cursor-pointer">Ask Bot 2</button>`;
         }
       } else if (numCPUs === 3) {
         leftSlot.className = 'w-full flex-shrink-0 block';
@@ -774,10 +972,10 @@
         const isTopTurn = (state.turnIndex === 2);
         topCpuWrapper.className = `glass-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center max-w-3xl mx-auto w-full transition-all ${isTopTurn ? 'border-sky-400 ring-2 ring-sky-400/40' : ''}`;
         cpuLabelEl.innerHTML = `Bot 2 (${state.cpuHands[1].length} cards in hand) — <span class="text-amber-300">${state.cpuBooks[1]} books</span>`;
-        cpuHandEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card face-down"></div>`).join('');
+        cpuHandEl.innerHTML = state.cpuHands[1].map(() => `<div class="playing-card ${backClass}"></div>`).join('');
 
         if (state.turnIndex === 0 && !state.waitingForPlayerAction && selectedAskRank !== null) {
-          cpuTopActionEl.innerHTML = `<button onclick="executePlayerAsk(${selectedAskRank}, 1)" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-md animate-pulse">Ask Bot 2</button>`;
+          cpuTopActionEl.innerHTML = `<button onclick="executePlayerAsk(${selectedAskRank}, 1)" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-md animate-pulse cursor-pointer">Ask Bot 2</button>`;
         }
 
         rightSlot.className = 'w-full flex-shrink-0 block';
@@ -800,6 +998,7 @@
       selectedAskRank = rank;
       const rankName = formatRank(rank);
 
+      playCardSound('click');
       if (totalPlayers === 2) {
         selectCardToAsk(rank);
       } else {
@@ -808,6 +1007,11 @@
         render();
       }
     }
+
+    // Listen to global settings changes in real time
+    window.addEventListener('gameSettingsChanged', () => {
+      render();
+    });
 
     newGame();
   </script>

@@ -314,20 +314,79 @@
 
   <!-- RULES MODAL -->
   <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-400/40 shadow-2xl text-left">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-emerald-400/40 shadow-2xl text-left">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">FreeCell Rules</h2>
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+            <i class="fa-solid fa-book-open text-sm"></i>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">FreeCell Rules</h2>
+        </div>
         <button onclick="closeRulesModal()" class="text-emerald-200/70 hover:text-white transition-colors p-1 cursor-pointer">
           <i class="fa-solid fa-xmark text-xl"></i>
         </button>
       </div>
-      <div class="space-y-3 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
-        <p><strong class="text-amber-300">Objective:</strong> Move all 52 cards to the four foundation piles, built up by suit from Ace to King (Ace, 2, 3... King).</p>
-        <p><strong class="text-amber-300">Free Cells:</strong> The four open slots at the top left can temporarily hold any single card.</p>
-        <p><strong class="text-amber-300">Tableau Piles:</strong> Build descending sequences alternating colors (e.g., a Black 8 on a Red 9). You can move structured sequences depending on available empty free cells and columns.</p>
-        <p><strong class="text-amber-300">Empty Columns:</strong> Any card or valid descending sequence can be moved into an empty tableau column.</p>
+
+      <div class="space-y-4 text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-h-[65vh] overflow-y-auto pr-2">
+        
+        <!-- Core Mechanics -->
+        <div class="space-y-2">
+          <p><strong class="text-amber-300">Objective:</strong> Move all 52 cards to the four foundation piles at the top right, building each suit up from Ace to King (A, 2, 3... K).</p>
+          <p><strong class="text-amber-300">Free Cells (Top Left):</strong> Four temporary storage slots. Each Free Cell can hold <strong>one single card</strong> at a time.</p>
+          <p><strong class="text-amber-300">Tableau Columns:</strong> Build descending sequences alternating colors (e.g., a Black 8 on a Red 9). Only the top card of a column or a valid alternating sequence can be moved.</p>
+        </div>
+
+        <!-- The Multi-Card Move Math -->
+        <div class="bg-black/35 rounded-2xl p-4 border border-white/10 space-y-2.5">
+          <h3 class="text-amber-300 font-bold uppercase tracking-wider text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-calculator"></i>
+            <span>Why Can't I Move a Full Stack? (The Move Math)</span>
+          </h3>
+          <p class="text-emerald-100/80 text-xs">
+            Technically, FreeCell only allows moving <strong>one card at a time</strong>. The game lets you drag a whole sequence at once as a shortcut—<em>only if</em> you have enough empty spaces to move those cards one by one behind the scenes.
+          </p>
+          <div class="bg-emerald-950/80 border border-emerald-400/30 rounded-xl px-3 py-2 text-center font-mono text-xs sm:text-sm text-amber-200 font-bold">
+            Max Cards = (1 + Empty Free Cells) &times; 2<sup>(Empty Columns)</sup>
+          </div>
+
+          <!-- Quick Reference Grid -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1 text-[11px] text-center">
+            <div class="bg-white/5 rounded-lg p-2 border border-white/10">
+              <div class="text-emerald-200/70">0 Free / 0 Cols</div>
+              <div class="font-extrabold text-white text-sm mt-0.5">1 Card</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 border border-white/10">
+              <div class="text-emerald-200/70">2 Free / 0 Cols</div>
+              <div class="font-extrabold text-white text-sm mt-0.5">3 Cards</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 border border-white/10">
+              <div class="text-emerald-200/70">4 Free / 0 Cols</div>
+              <div class="font-extrabold text-white text-sm mt-0.5">5 Cards</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 border border-white/10">
+              <div class="text-emerald-200/70">0 Free / 1 Col</div>
+              <div class="font-extrabold text-amber-300 text-sm mt-0.5">2 Cards</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 border border-white/10">
+              <div class="text-emerald-200/70">2 Free / 1 Col</div>
+              <div class="font-extrabold text-amber-300 text-sm mt-0.5">6 Cards</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 border border-white/10">
+              <div class="text-emerald-200/70">4 Free / 1 Col</div>
+              <div class="font-extrabold text-amber-300 text-sm mt-0.5">10 Cards</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Column Rule -->
+        <div class="space-y-1.5">
+          <p><strong class="text-amber-300">Empty Columns Rule:</strong> Any card or valid sequence can fill an empty column. However, if you move a stack <em>into</em> an empty column, that column is no longer empty during the move—so it does not double your move limit for that turn.</p>
+          <p><strong class="text-amber-300">Pro Tip:</strong> Double-click (or double-tap) any exposed card to automatically send it to its Foundation pile—or into an open Free Cell if it can't go up yet.</p>
+        </div>
+
       </div>
-      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg">
+
+      <button onclick="closeRulesModal()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg cursor-pointer">
         Got It
       </button>
     </div>
@@ -725,6 +784,24 @@
       return false;
     }
 
+    function highlightValidTargets(movingCards) {
+      for (let i = 0; i < 4; i++) {
+        const slot = document.getElementById(`freecell-${i}`);
+        slot.classList.toggle('valid-target', movingCards.length === 1 && state.freeCells[i] === null);
+      }
+      for (let i = 0; i < 4; i++) {
+        const slot = document.getElementById(`foundation-${i}`);
+        slot.classList.toggle('valid-target', movingCards.length === 1 && canMoveToFoundation(movingCards[0], i));
+      }
+      for (let c = 0; c < 8; c++) {
+        const colEl = document.getElementById(`tableau-${c}`);
+        const emptySlot = colEl.querySelector('.card-slot');
+        if (emptySlot) {
+          emptySlot.classList.toggle('valid-target', movingCards.length > 0 && canMoveToTableau(movingCards, c));
+        }
+      }
+    }
+
     function handleDragStart(e, zone, col, index) {
       if (!isCardDraggable(zone, col, index)) {
         e.preventDefault();
@@ -735,10 +812,24 @@
       selected = { zone, col, index };
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', JSON.stringify(dragSource));
-      
-      setTimeout(() => {
-        if (dragSource) render();
-      }, 0);
+
+      document.querySelectorAll('.playing-card.selected, .playing-card.hinted').forEach(el => {
+        el.classList.remove('selected', 'hinted');
+      });
+
+      if (zone === 'tableau') {
+        const colEl = document.getElementById(`tableau-${col}`);
+        const cardsInCol = colEl.querySelectorAll('.playing-card');
+        cardsInCol.forEach((cardEl, idx) => {
+          if (idx >= index) {
+            cardEl.classList.add('selected', 'dragging');
+          }
+        });
+      } else {
+        e.currentTarget.classList.add('selected', 'dragging');
+      }
+
+      highlightValidTargets(getCardsFromSource(dragSource));
     }
 
     function handleDragEnd() {
@@ -767,8 +858,10 @@
         }
       };
 
-      el.ondragleave = () => {
-        el.classList.remove('drag-over');
+      el.ondragleave = (e) => {
+        if (!el.contains(e.relatedTarget)) {
+          el.classList.remove('drag-over');
+        }
       };
 
       el.ondrop = (e) => {
@@ -867,7 +960,11 @@
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
 
+    // Upgraded Smart Hint System prioritizing foundations and card uncovering
     function showHint() {
+      hintCard = null;
+
+      // 1. Priority: Free Cells -> Foundations
       for (let i = 0; i < 4; i++) {
         const card = state.freeCells[i];
         if (card) {
@@ -880,6 +977,7 @@
         }
       }
 
+      // 2. Priority: Tableau tops -> Foundations
       for (let c = 0; c < 8; c++) {
         const col = state.tableau[c];
         if (col.length > 0) {
@@ -893,6 +991,44 @@
         }
       }
 
+      // 3. Priority: Free Cells -> Tableau
+      for (let i = 0; i < 4; i++) {
+        const card = state.freeCells[i];
+        if (card) {
+          for (let targetC = 0; targetC < 8; targetC++) {
+            if (canMoveToTableau([card], targetC)) {
+              hintCard = { zone: 'freecell', col: i, index: 0 };
+              render();
+              return;
+            }
+          }
+        }
+      }
+
+      // 4. Priority: Tableau moves that uncover buried cards
+      for (let srcC = 0; srcC < 8; srcC++) {
+        const col = state.tableau[srcC];
+        for (let i = 0; i < col.length; i++) {
+          if (isValidRun(srcC, i)) {
+            const movingCards = col.slice(i);
+            const uncoversCard = (i > 0);
+
+            for (let targetC = 0; targetC < 8; targetC++) {
+              if (srcC === targetC) continue;
+              if (canMoveToTableau(movingCards, targetC)) {
+                if (state.tableau[targetC].length === 0 && i === 0) continue;
+                if (uncoversCard) {
+                  hintCard = { zone: 'tableau', col: srcC, index: i };
+                  render();
+                  return;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 5. Fallback: Any other legal sequence move
       for (let srcC = 0; srcC < 8; srcC++) {
         const col = state.tableau[srcC];
         for (let i = 0; i < col.length; i++) {
@@ -908,19 +1044,6 @@
                 render();
                 return;
               }
-            }
-          }
-        }
-      }
-
-      for (let i = 0; i < 4; i++) {
-        const card = state.freeCells[i];
-        if (card) {
-          for (let targetC = 0; targetC < 8; targetC++) {
-            if (canMoveToTableau([card], targetC)) {
-              hintCard = { zone: 'freecell', col: i, index: 0 };
-              render();
-              return;
             }
           }
         }
@@ -1132,11 +1255,12 @@
 
         if (col.length === 0) {
           const emptySlot = document.createElement('div');
-          emptySlot.className = 'card-slot w-full';
+          emptySlot.className = 'card-slot w-full pointer-events-none';
           if (movingCards.length > 0 && canMoveToTableau(movingCards, c)) {
             emptySlot.classList.add('valid-target');
           }
           colEl.appendChild(emptySlot);
+          colEl.style.minHeight = isMobile ? '18rem' : '22rem';
         } else {
           col.forEach((card, idx) => {
             const isSel = selected && selected.zone === 'tableau' && selected.col === c && idx >= selected.index;

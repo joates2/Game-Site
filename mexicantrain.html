@@ -13,8 +13,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;900&display=swap');
 
     :root {
-      --felt-dark: #052e16;
-      --felt-mid: #064e3b;
+      --felt-dark: #032010;
+      --felt-mid: #053b1e;
       --felt-light: #047857;
     }
 
@@ -32,8 +32,8 @@
       inset: 0;
       background-image: 
         radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
-        radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
-      background-size: 6px 6px, 10px 10px;
+        radial-gradient(rgba(0, 0, 0, 0.18) 1px, transparent 0);
+      background-size: 6px 6px, 12px 12px;
       pointer-events: none;
       z-index: 1;
     }
@@ -41,69 +41,133 @@
     .vignette {
       position: fixed;
       inset: 0;
-      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
       pointer-events: none;
       z-index: 2;
     }
 
     .glass-panel {
-      background: rgba(4, 28, 16, 0.65);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(3, 22, 12, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    /* Domino Tile Styling */
+    .tabletop-board {
+      background: radial-gradient(circle at center, rgba(6, 78, 41, 0.5) 0%, rgba(2, 20, 10, 0.92) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.85), 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .wooden-hub-station {
+      background: linear-gradient(135deg, #b45309 0%, #78350f 50%, #451a03 100%);
+      border: 4px solid #fbbf24;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.6);
+      clip-path: polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%);
+    }
+
+    /* Updated Solid Hand Style to Match Dominoes Page */
+    .solid-hand {
+      background: var(--felt-mid);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
     .domino-tile {
       background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       color: #0f172a;
       border: 2px solid #cbd5e1;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
+      font-size: 1.15rem;
       cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .domino-tile:active {
+      cursor: grabbing;
     }
 
     .domino-tile:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
       border-color: #fbbf24;
     }
 
     .domino-tile.selected {
       border-color: #fbbf24;
-      box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
-      transform: translateY(-5px);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.7);
+      transform: translateY(-6px);
     }
 
     .domino-horizontal {
-      width: 64px;
-      height: 34px;
+      width: 76px;
+      height: 40px;
       flex-direction: row;
-      gap: 4px;
+      gap: 6px;
     }
 
-    .hub-circle {
-      background: radial-gradient(circle, #0f172a 0%, #020617 100%);
-      border: 4px solid #fbbf24;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    .domino-vertical {
+      width: 40px;
+      height: 76px;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    /* Universal High Contrast / Dark Pips Global Setting Selectors */
+    html.high-contrast-cards .domino-tile,
+    body.dark-pips .domino-tile,
+    body.high-contrast .domino-tile {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+      color: #f8fafc !important;
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    html.high-contrast-cards .domino-tile span,
+    body.dark-pips .domino-tile span,
+    body.high-contrast .domino-tile span {
+      color: #f8fafc !important;
+    }
+
+    .drop-target-hover {
+      border-color: #fbbf24 !important;
+      background: rgba(250, 204, 21, 0.25) !important;
+    }
+
+    .train-clickable {
+      cursor: pointer;
+    }
+
+    /* Floating Toast Animation */
+    #toast-notification {
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
   </style>
 </head>
 <body class="flex flex-col min-h-screen select-none">
-  <!-- Visual Felt Textures -->
   <div class="felt-texture"></div>
   <div class="vignette"></div>
 
-  <!-- MAIN WRAPPER -->
-  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-6xl mx-auto px-4 py-4 sm:py-6">
+  <!-- FLOATING NOTIFICATION TOAST -->
+  <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+    <div id="toast-notification" class="glass-panel px-4 py-2.5 rounded-2xl border border-amber-400/40 shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm text-amber-200 font-semibold opacity-0 translate-y-[-10px]">
+      <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+      <span id="toast-message">Notification text goes here</span>
+    </div>
+  </div>
+
+  <div class="relative z-10 flex flex-col min-h-screen w-full max-w-7xl mx-auto px-4 py-4 sm:py-6">
     
-    <!-- TOP NAVBAR (Home Page Banner - Clickable to Home) -->
+    <!-- TOP NAVBAR -->
     <nav class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex items-center justify-between shadow-xl">
       <a href="index.html" class="flex items-center gap-3 group cursor-pointer">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg group-hover:scale-105 transition-transform">
@@ -130,19 +194,41 @@
     </nav>
 
     <!-- SECONDARY GAME SUB-BANNER -->
-    <div class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-white/15">
+    <div class="glass-panel rounded-2xl px-4 sm:px-6 py-3 mb-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-white/15">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-base">
           <i class="fa-solid fa-train"></i>
         </div>
         <div>
           <h2 class="text-base sm:text-lg font-black text-amber-300 uppercase tracking-wide" style="font-family: 'Cinzel', serif;">Mexican Train Dominoes</h2>
-          <span id="sub-status-text" class="text-xs text-emerald-200/80 font-medium">Your Turn (Play on your train or Mexican train)</span>
+          <span id="round-mode-label" class="text-xs text-emerald-200/80 font-medium">Round 1 of 13 (Engine: 12-12)</span>
         </div>
       </div>
       
-      <!-- Sub-banner Action Buttons (Hint, Rules, New Game) -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- ALWAYS-VISIBLE COMPACT SCOREBOARD DISPLAY -->
+        <div id="scoreboard-mini-container" class="flex items-center gap-2.5 bg-black/40 px-3 py-1.5 rounded-xl border border-amber-400/30 text-xs">
+          <span class="text-amber-300 font-bold flex items-center gap-1"><i class="fa-solid fa-trophy text-amber-400"></i> Score:</span>
+          <span class="text-emerald-100">You: <strong id="score-display-you" class="text-white">0</strong></span>
+          <span id="score-item-ai-0" class="text-emerald-100">| Bot 1: <strong id="score-display-ai-0" class="text-white">0</strong></span>
+          <span id="score-item-ai-1" class="text-emerald-100 hidden">| Bot 2: <strong id="score-display-ai-1" class="text-white">0</strong></span>
+          <span id="score-item-ai-2" class="text-emerald-100 hidden">| Bot 3: <strong id="score-display-ai-2" class="text-white">0</strong></span>
+        </div>
+
+        <!-- PLAYER COUNT SELECTOR DROPDOWN -->
+        <div class="flex items-center gap-2 bg-black/40 px-2.5 py-1 rounded-xl border border-white/15">
+          <i class="fa-solid fa-users text-amber-400 text-xs"></i>
+          <select id="player-count-select" class="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer">
+            <option value="2" class="bg-slate-900 text-white" selected>2 Players</option>
+            <option value="3" class="bg-slate-900 text-white">3 Players</option>
+            <option value="4" class="bg-slate-900 text-white">4 Players</option>
+          </select>
+        </div>
+
+        <button id="undo-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-rotate-left text-amber-400"></i>
+          <span>Undo</span>
+        </button>
         <button id="hint-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 transition-all flex items-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-lightbulb text-amber-400"></i>
           <span>Hint</span>
@@ -159,73 +245,99 @@
     </div>
 
     <!-- GAME CONTAINER -->
-    <main class="flex-1 flex flex-col gap-6 pb-12">
-      
-      <!-- BOARD PLAY AREA -->
-      <div class="glass-panel rounded-3xl p-6 border border-white/15 flex flex-col gap-8 shadow-2xl relative min-h-[420px] justify-between">
+    <main class="flex-1 flex flex-col gap-4 pb-8">
+
+      <!-- TABLETOP FIELD WITH PINNED ENGINE HUB, CENTERED STATUS, & STACKED HORIZONTAL LANES -->
+      <div class="tabletop-board rounded-3xl p-4 sm:p-6 relative min-h-[520px] flex flex-col justify-start items-start gap-5 overflow-x-auto">
         
-        <!-- CENTRAL HUB & PUBLIC TRAINS -->
-        <div class="flex flex-col items-center justify-center gap-6 my-auto">
-          <!-- Central Engine Hub -->
-          <div class="hub-circle w-20 h-20 rounded-full flex flex-col items-center justify-center text-amber-300 font-black shadow-2xl">
-            <span class="text-[10px] uppercase text-emerald-200/70 tracking-wider">Engine</span>
-            <span id="hub-engine" class="text-2xl">12</span>
+        <!-- TOP ROW CONTAINER: PINNED ENGINE HUB + INDEPENDENT CENTERED DYNAMIC STATUS & BONEYARD COUNTER -->
+        <div class="flex items-center justify-between w-full gap-4">
+          
+          <!-- Pinned Wooden Engine Hub (Left Anchor) -->
+          <div class="w-[155px] flex items-center justify-center shrink-0">
+            <div class="wooden-hub-station w-16 h-16 flex flex-col items-center justify-center text-amber-200 font-black shadow-xl">
+              <span class="text-[7px] uppercase tracking-wider text-amber-300">Engine</span>
+              <span id="hub-engine" class="text-lg font-black" style="font-family: 'Cinzel', serif;">12</span>
+            </div>
           </div>
 
-          <!-- Trains Display Area -->
-          <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            <!-- Player Train -->
-            <div class="glass-panel rounded-2xl p-4 border border-blue-400/30 flex flex-col gap-2">
-              <div class="flex justify-between items-center text-xs font-bold text-blue-300">
-                <span><i class="fa-solid fa-train"></i> Your Train (Open)</span>
-                <button id="play-player-train" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg text-[10px] cursor-pointer transition-all">Play Here</button>
-              </div>
-              <div id="player-train-track" class="flex flex-wrap gap-2 items-center min-h-[50px] p-2 bg-black/20 rounded-xl overflow-x-auto">
-                <span class="text-xs text-emerald-200/40 italic">Empty train</span>
-              </div>
+          <!-- Centered Dynamic Status Message & Next Round Controls -->
+          <div class="flex items-center justify-center gap-2 flex-1 min-w-0">
+            <div class="glass-panel px-4 py-2 rounded-xl border border-white/15 shadow-md text-center">
+              <span id="sub-status-text" class="text-xs sm:text-sm font-semibold text-amber-300 tracking-wide">Your Turn: Opening turn allows multiple plays on your train!</span>
             </div>
-
-            <!-- Mexican Train -->
-            <div class="glass-panel rounded-2xl p-4 border border-amber-400/30 flex flex-col gap-2">
-              <div class="flex justify-between items-center text-xs font-bold text-amber-300">
-                <span><i class="fa-solid fa-train-subway"></i> Mexican Train (Open)</span>
-                <button id="play-mexican-train" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all">Play Here</button>
-              </div>
-              <div id="mexican-train-track" class="flex flex-wrap gap-2 items-center min-h-[50px] p-2 bg-black/20 rounded-xl overflow-x-auto">
-                <span class="text-xs text-emerald-200/40 italic">Empty train</span>
-              </div>
-            </div>
-
-            <!-- AI Train -->
-            <div class="glass-panel rounded-2xl p-4 border border-rose-400/30 flex flex-col gap-2">
-              <div class="flex justify-between items-center text-xs font-bold text-rose-300">
-                <span><i class="fa-solid fa-train"></i> AI Train <span id="ai-train-status" class="text-[10px] text-emerald-300">(Closed)</span></span>
-                <button id="play-ai-train" class="bg-rose-600/50 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg text-[10px] cursor-pointer transition-all">Play Here</button>
-              </div>
-              <div id="ai-train-track" class="flex flex-wrap gap-2 items-center min-h-[50px] p-2 bg-black/20 rounded-xl overflow-x-auto">
-                <span class="text-xs text-emerald-200/40 italic">Empty train</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- PLAYER HAND -->
-        <div class="flex flex-col gap-3 pt-4 border-t border-white/15">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
-              <i class="fa-solid fa-hand-holding text-amber-400"></i>
-              <span>Your Hand (<span id="hand-count">0</span> tiles)</span>
-            </h3>
-            <button id="draw-btn" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3.5 py-1.5 rounded-xl text-xs transition-all border border-white/15 flex items-center gap-1.5 cursor-pointer">
-              <i class="fa-solid fa-plus"></i>
-              <span>Draw Tile</span>
+            <button id="next-round-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs transition-all shadow hidden cursor-pointer flex items-center gap-1.5 shrink-0">
+              <i class="fa-solid fa-forward"></i>
+              <span>Next Round</span>
             </button>
           </div>
-          <div id="player-hand" class="flex flex-wrap gap-3 items-center min-h-[80px] p-3 bg-black/30 rounded-2xl border border-white/10 overflow-x-auto"></div>
+
+          <!-- Boneyard Counter in Top-Right Corner -->
+          <div class="glass-panel px-4 py-2 rounded-xl border border-white/15 text-xs text-emerald-200 shadow-md shrink-0">
+            <span>Boneyard remaining: <strong id="boneyard-count" class="text-white">0</strong></span>
+          </div>
         </div>
 
+        <!-- STACKED HORIZONTAL TRAINS CONTAINER (FLUSH LEFT, FULL WIDTH) -->
+        <div class="flex flex-col gap-3 w-full">
+          
+          <!-- Public Mexican Train Lane -->
+          <div id="drop-mexican-train" class="glass-panel rounded-2xl p-3 border border-amber-400/40 flex items-center gap-4 transition-all shadow-xl w-full train-clickable">
+            <div class="min-w-[155px] flex flex-col gap-1 border-r border-white/10 pr-3 shrink-0">
+              <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-train-subway text-amber-400"></i> Mexican Train
+              </span>
+              <span class="text-[10px] text-amber-200/70 font-medium">(Public)</span>
+              <span class="text-[10px] text-amber-400 font-semibold mt-1">Click anywhere to play</span>
+            </div>
+            <div id="mexican-train-track" class="flex flex-row gap-2 items-center min-h-[45px] p-2 bg-black/30 rounded-xl overflow-x-auto flex-1">
+              <span class="text-[11px] text-emerald-200/40 italic">&larr; Extending right from Engine hub</span>
+            </div>
+          </div>
+
+          <!-- AI Opponent Trains Stacked Below -->
+          <div id="ai-trains-container" class="contents"></div>
+
+          <!-- Your Player Train Lane (Bottom Stack) -->
+          <div id="drop-player-train" class="glass-panel rounded-2xl p-3 border border-blue-400/40 flex items-center gap-4 transition-all shadow-xl w-full train-clickable">
+            <div class="min-w-[155px] flex flex-col gap-1 border-r border-white/10 pr-3 shrink-0">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-train text-blue-400"></i> Your Train
+                </span>
+                <span id="outside-player-count" class="text-[10px] bg-black/40 text-blue-200 px-1.5 py-0.5 rounded border border-blue-400/20 font-mono">15 tiles</span>
+              </div>
+              <span id="player-train-status" class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">(Closed)</span>
+              <span class="text-[10px] text-blue-300 font-semibold mt-1">Click anywhere to play</span>
+            </div>
+            <div id="player-train-track" class="flex flex-row gap-2 items-center min-h-[45px] p-2 bg-black/30 rounded-xl overflow-x-auto flex-1">
+              <span class="text-[11px] text-emerald-200/40 italic">&larr; Extending right from Engine hub toward your hand</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- MIDDLE CONTROLS: DRAW TILE BUTTON -->
+      <div class="flex items-center justify-center gap-4 py-1">
+        <div class="glass-panel px-4 py-2 rounded-2xl border border-white/15 flex items-center gap-4 shadow-lg text-xs">
+          <button id="draw-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-1.5 rounded-xl transition-all shadow flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-plus"></i>
+            <span>Draw from Boneyard</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM SEAT (YOUR HAND) -->
+      <div id="seat-player" class="player-seat solid-hand rounded-3xl p-4 flex flex-col gap-3 shadow-2xl">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+            <i class="fa-solid fa-hand-holding text-amber-400"></i>
+            <span>Your Hand (<span id="hand-count">0</span> tiles)</span>
+          </h3>
+        </div>
+        <div id="player-hand" class="flex flex-wrap gap-3 items-center min-h-[90px] p-2 overflow-x-auto"></div>
       </div>
 
     </main>
@@ -255,18 +367,20 @@
   <div id="rules-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-white/20 shadow-2xl flex flex-col gap-4">
       <div class="flex justify-between items-center border-b border-white/15 pb-3">
-        <h3 class="text-lg font-bold text-amber-300 uppercase" style="font-family: 'Cinzel', serif;">Mexican Train Rules</h3>
+        <h3 class="text-lg font-bold text-amber-300 uppercase" style="font-family: 'Cinzel', serif;">How to Play Mexican Train</h3>
         <button id="close-rules" class="text-emerald-200 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-2">
-        <p><strong>Objective:</strong> Be the first player to empty your hand of all domino tiles by playing them onto valid train tracks.</p>
-        <p><strong>The Engine:</strong> The game starts from a central double tile (the Engine, e.g., Double-12).</p>
-        <p><strong>Valid Plays:</strong> 
-          <br>• You can play on your own personal train.
-          <br>• You can play on the shared <strong>Mexican Train</strong> at any time.
-          <br>• You can play on an opponent's train only if their train marker is up (marked as Open).
+        <p><strong>Stacked Horizontal Layout:</strong> The Engine hub anchors the top-left corner, and all train tracks extend horizontally from left to right, stacked vertically on top of each other.</p>
+        <p><strong>Full Game (13 Rounds):</strong> The game spans 13 rounds, starting with the Double-12 engine and stepping down each round to Double-0.</p>
+        <p><strong>Controls (Click or Drag &amp; Drop):</strong> Click a tile in your hand to select it and click anywhere on the train row you want, or simply <strong>drag and drop</strong> any tile directly onto a train track row.</p>
+        <p><strong>Taking Your Turn:</strong> 
+          <br>• <strong>First Turn Only:</strong> On your very first turn of a round, you can play as many matching tiles as you want onto your personal train.
+          <br>• <strong>Later Turns:</strong> After your opening turn, you are restricted to playing just one tile per turn.
         </p>
-        <p><strong>Drawing:</strong> If you cannot make a valid move from your hand, you must draw a tile. If you still cannot play, your train becomes marked open for others, and your turn ends.</p>
+        <p><strong>Stuck &amp; Drawing:</strong> If you cannot make a legal move, you must draw a tile from the boneyard. If it fits, you can play it right away. If it still doesn't fit, your train marker goes up (making your train <strong>Open</strong> to others), and your turn ends.</p>
+        <p><strong>Playing Doubles:</strong> Whenever a double tile is played, it creates a special condition: either the player who laid it or the next person must immediately play a tile to satisfy (resolve) the double before doing anything else.</p>
+        <p><strong>Scoring:</strong> Unplayed tiles at the end of each round count as penalty points (sum of their pips). The player with the lowest total score after all 13 rounds wins.</p>
       </div>
       <button id="close-rules-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer">Got It!</button>
     </div>
@@ -277,47 +391,217 @@
 
   <!-- MEXICAN TRAIN GAME LOGIC -->
   <script>
+    let roundIndex = 0; 
+    let boneyard = [];
     let playerHand = [];
-    let aiHand = [];
+    let aiHands = []; 
     let playerTrain = [];
     let mexicanTrain = [];
-    let aiTrain = [];
+    let aiTrains = []; 
     let engineValue = 12;
     let selectedTileIndex = null;
-    let turn = 'player';
-    let aiTrainOpen = false;
+    let currentTurnIndex = 0; 
+    let totalPlayers = 2;
+    let isFirstTurn = true;
+    let playerTrainOpen = false;
+    let aiTrainsOpen = []; 
+    let pendingDouble = null; 
+    let playerScore = 0;
+    let aiScores = [];
+    let roundHistoryScores = [];
     let gameOver = false;
+    let historyState = null;
+    let lastAiActionMessage = "";
+    let toastTimeout = null;
 
     const hubEngineEl = document.getElementById('hub-engine');
     const playerHandEl = document.getElementById('player-hand');
     const handCountEl = document.getElementById('hand-count');
     const playerTrackEl = document.getElementById('player-train-track');
     const mexicanTrackEl = document.getElementById('mexican-train-track');
-    const aiTrackEl = document.getElementById('ai-train-track');
-    const aiStatusEl = document.getElementById('ai-train-status');
+    const aiTrainsContainer = document.getElementById('ai-trains-container');
+    const playerStatusEl = document.getElementById('player-train-status');
+    const boneyardCountEl = document.getElementById('boneyard-count');
     const subStatusText = document.getElementById('sub-status-text');
+    const roundModeLabel = document.getElementById('round-mode-label');
+    const scoreDisplayYou = document.getElementById('score-display-you');
+    const outsidePlayerCount = document.getElementById('outside-player-count');
+    const playerCountSelect = document.getElementById('player-count-select');
+    const nextRoundBtn = document.getElementById('next-round-btn');
+    const toastNotification = document.getElementById('toast-notification');
+    const toastMessage = document.getElementById('toast-message');
 
-    function initGame() {
+    function getBotName(botIndex) {
+      return `Bot ${botIndex + 1}`;
+    }
+
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toastNotification.classList.remove('opacity-0', 'translate-y-[-10px]');
+      toastNotification.classList.add('opacity-100', 'translate-y-0');
+      
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastNotification.classList.remove('opacity-100', 'translate-y-0');
+        toastNotification.classList.add('opacity-0', 'translate-y-[-10px]');
+      }, 3000);
+    }
+
+    // Web Audio API Sound Generator
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTileSound(type = 'click') {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+      } else if (type === 'place') {
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+      } else if (type === 'draw') {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+      }
+    }
+
+    function saveStateForUndo() {
+      historyState = {
+        boneyard: JSON.parse(JSON.stringify(boneyard)),
+        playerHand: JSON.parse(JSON.stringify(playerHand)),
+        aiHands: JSON.parse(JSON.stringify(aiHands)),
+        playerTrain: JSON.parse(JSON.stringify(playerTrain)),
+        mexicanTrain: JSON.parse(JSON.stringify(mexicanTrain)),
+        aiTrains: JSON.parse(JSON.stringify(aiTrains)),
+        currentTurnIndex: currentTurnIndex,
+        isFirstTurn: isFirstTurn,
+        playerTrainOpen: playerTrainOpen,
+        aiTrainsOpen: JSON.parse(JSON.stringify(aiTrainsOpen)),
+        pendingDouble: pendingDouble ? { ...pendingDouble } : null,
+        gameOver: gameOver,
+        lastAiActionMessage: lastAiActionMessage
+      };
+    }
+
+    function initGame(newMatch = false) {
+      if (newMatch) {
+        roundIndex = 0;
+        playerScore = 0;
+        aiScores = [];
+        roundHistoryScores = [];
+      }
+
+      totalPlayers = parseInt(playerCountSelect.value);
+      const numAI = totalPlayers - 1;
+
+      engineValue = 12 - roundIndex;
+      roundModeLabel.textContent = `Round ${roundIndex + 1} of 13 (Engine: ${engineValue}-${engineValue})`;
+      hubEngineEl.textContent = engineValue;
+      nextRoundBtn.classList.add('hidden');
+      lastAiActionMessage = "";
+
       let allTiles = [];
       for (let i = 0; i <= 12; i++) {
         for (let j = i; j <= 12; j++) {
-          allTiles.push({ left: i, right: j });
+          allTiles.push({ left: i, right: j, isDouble: i === j });
         }
       }
       allTiles.sort(() => Math.random() - 0.5);
 
-      playerHand = allTiles.splice(0, 12);
-      aiHand = allTiles.splice(0, 12);
+      playerHand = allTiles.splice(0, 15);
+      aiHands = [];
+      aiTrains = [];
+      aiTrainsOpen = [];
+      if (aiScores.length === 0 || aiScores.length !== numAI) aiScores = new Array(numAI).fill(0);
+
+      for (let i = 0; i < numAI; i++) {
+        aiHands.push(allTiles.splice(0, 15));
+        aiTrains.push([]);
+        aiTrainsOpen.push(false);
+      }
+
+      boneyard = allTiles;
       playerTrain = [];
       mexicanTrain = [];
-      aiTrain = [];
       selectedTileIndex = null;
-      aiTrainOpen = false;
+      currentTurnIndex = 0; 
+      isFirstTurn = true;
+      playerTrainOpen = false;
+      pendingDouble = null;
       gameOver = false;
-      turn = 'player';
+      historyState = null;
 
-      hubEngineEl.textContent = engineValue;
+      buildAITrainsDOM(numAI);
+      updateScoreboardUI();
       render();
+    }
+
+    function buildAITrainsDOM(numAI) {
+      aiTrainsContainer.innerHTML = '';
+      
+      for (let i = 0; i < 3; i++) {
+        const itemEl = document.getElementById(`score-item-ai-${i}`);
+        if (itemEl) {
+          if (i < numAI) {
+            itemEl.classList.remove('hidden');
+          } else {
+            itemEl.classList.add('hidden');
+          }
+        }
+      }
+
+      for (let i = 0; i < numAI; i++) {
+        const botName = getBotName(i);
+        const div = document.createElement('div');
+        div.id = `drop-ai-train-${i}`;
+        div.className = 'glass-panel rounded-2xl p-3 border border-rose-400/40 flex items-center gap-4 transition-all shadow-xl w-full train-clickable';
+        div.innerHTML = `
+          <div class="min-w-[155px] flex flex-col gap-1 border-r border-white/10 pr-3 shrink-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-train text-rose-400"></i> ${botName}
+              </span>
+              <span id="ai-tile-count-${i}" class="text-[10px] bg-black/40 text-rose-200 px-1.5 py-0.5 rounded border border-rose-400/20 font-mono">15 tiles</span>
+            </div>
+            <span id="ai-status-${i}" class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">(Closed)</span>
+            <span class="text-[10px] text-rose-300 font-semibold mt-1">Click anywhere to play</span>
+          </div>
+          <div id="ai-track-${i}" class="flex flex-row gap-2 items-center min-h-[45px] p-2 bg-black/30 rounded-xl overflow-x-auto flex-1 pointer-events-none">
+            <span class="text-[11px] text-emerald-200/40 italic">&larr; Extending right from Engine hub</span>
+          </div>
+        `;
+
+        div.addEventListener('click', () => {
+          playTile('ai', i);
+        });
+
+        div.addEventListener('dragover', (e) => e.preventDefault());
+        div.addEventListener('dragenter', () => div.classList.add('drop-target-hover'));
+        div.addEventListener('dragleave', () => div.classList.remove('drop-target-hover'));
+        div.addEventListener('drop', (e) => {
+          e.preventDefault();
+          div.classList.remove('drop-target-hover');
+          const tileIdx = parseInt(e.dataTransfer.getData('text/plain'));
+          if (!isNaN(tileIdx)) {
+            selectedTileIndex = tileIdx;
+            playTile('ai', i);
+          }
+        });
+
+        aiTrainsContainer.appendChild(div);
+      }
     }
 
     function getTrainEnd(train) {
@@ -329,56 +613,106 @@
     function render() {
       playerHandEl.innerHTML = '';
       if (playerHand.length === 0) {
-        playerHandEl.innerHTML = '<span class="text-xs text-emerald-200/60 italic">Your hand is empty! You win!</span>';
+        playerHandEl.innerHTML = '<span class="text-xs text-emerald-200/60 italic">Your hand is empty! Round won!</span>';
       } else {
         playerHand.forEach((tile, index) => {
           const tileDiv = document.createElement('div');
-          tileDiv.className = `domino-tile domino-horizontal ${selectedTileIndex === index ? 'selected' : ''}`;
-          tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
-          tileDiv.addEventListener('click', () => {
+          const isVert = tile.isDouble;
+          tileDiv.className = `domino-tile ${isVert ? 'domino-vertical' : 'domino-horizontal'} ${selectedTileIndex === index ? 'selected' : ''}`;
+          tileDiv.draggable = true;
+          
+          if (isVert) {
+            tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light text-[11px]">―</span><span>${tile.right}</span>`;
+          } else {
+            tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+          }
+          
+          tileDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playTileSound('click');
             selectedTileIndex = selectedTileIndex === index ? null : index;
             render();
           });
+
+          tileDiv.addEventListener('dragstart', (e) => {
+            selectedTileIndex = index;
+            e.dataTransfer.setData('text/plain', index.toString());
+          });
+
           playerHandEl.appendChild(tileDiv);
         });
       }
       handCountEl.textContent = playerHand.length;
+      outsidePlayerCount.textContent = `${playerHand.length} tile${playerHand.length === 1 ? '' : 's'}`;
+      boneyardCountEl.textContent = boneyard.length;
 
       renderTrack(playerTrackEl, playerTrain);
       renderTrack(mexicanTrackEl, mexicanTrain);
-      renderTrack(aiTrackEl, aiTrain);
 
-      aiStatusEl.textContent = aiTrainOpen ? "(Open)" : "(Closed)";
-      aiStatusEl.className = aiTrainOpen ? "text-[10px] text-amber-300 font-bold" : "text-[10px] text-emerald-300";
+      for (let i = 0; i < aiTrains.length; i++) {
+        const trackEl = document.getElementById(`ai-track-${i}`);
+        const statusEl = document.getElementById(`ai-status-${i}`);
+        const countEl = document.getElementById(`ai-tile-count-${i}`);
+        if (trackEl && statusEl) {
+          renderTrack(trackEl, aiTrains[i]);
+          statusEl.textContent = aiTrainsOpen[i] ? "(Open)" : "(Closed)";
+          statusEl.className = aiTrainsOpen[i] ? "text-[10px] text-amber-300 font-bold uppercase tracking-wider" : "text-[10px] text-emerald-300 font-bold uppercase tracking-wider";
+        }
+        if (countEl) {
+          const handSize = aiHands[i] ? aiHands[i].length : 0;
+          countEl.textContent = `${handSize} tile${handSize === 1 ? '' : 's'}`;
+        }
+      }
+
+      playerStatusEl.textContent = playerTrainOpen ? "(Open)" : "(Closed)";
+      playerStatusEl.className = playerTrainOpen ? "text-[10px] text-amber-300 font-bold uppercase tracking-wider" : "text-[10px] text-emerald-300 font-bold uppercase tracking-wider";
 
       if (gameOver) return;
 
-      if (turn === 'player') {
-        subStatusText.textContent = selectedTileIndex !== null 
-          ? "Tile selected! Click 'Play Here' on your train, Mexican train, or AI train (if open)."
-          : "Your Turn: Select a tile from your hand, then choose where to play.";
+      if (currentTurnIndex === 0) {
+        let prefix = lastAiActionMessage ? `<span class="text-amber-200 font-normal">[${lastAiActionMessage}]</span> ` : "";
+        if (pendingDouble) {
+          subStatusText.innerHTML = `${prefix}Pending Double (${pendingDouble.left}-${pendingDouble.right}) must be satisfied! Click a tile then click anywhere on a valid train row.`;
+        } else if (isFirstTurn) {
+          subStatusText.innerHTML = `${prefix}Your Turn: Click a tile to select it, then click anywhere on your train row.`;
+        } else {
+          subStatusText.innerHTML = prefix + (selectedTileIndex !== null 
+            ? "Tile selected! Click anywhere on your train, Mexican train, or an open opponent train to play."
+            : "Your Turn: Click a tile in your hand to select it, then click anywhere on the train you want.");
+        }
       } else {
-        subStatusText.textContent = "AI is thinking...";
-        setTimeout(makeAIMove, 800);
+        const activeBotName = getBotName(currentTurnIndex - 1);
+        subStatusText.textContent = `${activeBotName} is thinking...`;
+        setTimeout(makeAIMove, 900);
       }
     }
 
     function renderTrack(container, train) {
       container.innerHTML = '';
       if (train.length === 0) {
-        container.innerHTML = '<span class="text-xs text-emerald-200/40 italic">Empty train</span>';
+        container.innerHTML = '<span class="text-[11px] text-emerald-200/40 italic pointer-events-none">&larr; Extending right from Engine hub</span>';
         return;
       }
       train.forEach(tile => {
         const tileDiv = document.createElement('div');
-        tileDiv.className = 'domino-tile domino-horizontal text-xs';
-        tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+        const isVert = tile.isDouble;
+        tileDiv.className = `domino-tile ${isVert ? 'domino-vertical' : 'domino-horizontal'} text-xs pointer-events-none`;
+        if (isVert) {
+          tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light text-[11px]">―</span><span>${tile.right}</span>`;
+        } else {
+          tileDiv.innerHTML = `<span>${tile.left}</span><span class="text-slate-400 font-light">|</span><span>${tile.right}</span>`;
+        }
         container.appendChild(tileDiv);
       });
     }
 
-    function playTile(trainName) {
-      if (turn !== 'player' || selectedTileIndex === null || gameOver) return;
+    function playTile(trainName, aiIndex = null) {
+      if (currentTurnIndex !== 0 || gameOver) return;
+
+      if (selectedTileIndex === null) {
+        showToast("Please select a tile from your hand first!");
+        return;
+      }
 
       const tile = playerHand[selectedTileIndex];
       let targetTrain;
@@ -386,15 +720,23 @@
       if (trainName === 'player') targetTrain = playerTrain;
       else if (trainName === 'mexican') targetTrain = mexicanTrain;
       else if (trainName === 'ai') {
-        if (!aiTrainOpen) {
-          alert("AI's train is currently closed! You can only play on your train or the Mexican train.");
+        if (!aiTrainsOpen[aiIndex]) {
+          showToast(`${getBotName(aiIndex)}'s train is closed!`);
           return;
         }
-        targetTrain = aiTrain;
+        targetTrain = aiTrains[aiIndex];
+      }
+
+      if (pendingDouble) {
+        if (!isValidPlay(tile, targetTrain) || (tile.left !== pendingDouble.right && tile.right !== pendingDouble.right)) {
+          showToast(`Must satisfy the pending double (${pendingDouble.left}-${pendingDouble.right}) first!`);
+          return;
+        }
       }
 
       const valid = isValidPlay(tile, targetTrain);
       if (valid) {
+        saveStateForUndo();
         const endVal = getTrainEnd(targetTrain);
         let playedTile = { ...tile };
         if (playedTile.left !== endVal && playedTile.right === endVal) {
@@ -405,18 +747,38 @@
         targetTrain.push(playedTile);
         playerHand.splice(selectedTileIndex, 1);
         selectedTileIndex = null;
+        lastAiActionMessage = ""; 
+        playTileSound('place');
+
+        if (trainName === 'player') {
+          playerTrainOpen = false;
+        }
+
+        if (playedTile.isDouble) {
+          pendingDouble = playedTile;
+          subStatusText.textContent = `Double played! Must satisfy immediately or next turn.`;
+          render();
+          return;
+        } else {
+          pendingDouble = null;
+        }
 
         if (playerHand.length === 0) {
-          subStatusText.textContent = "Congratulations! You emptied your hand and won the game!";
-          gameOver = true;
-          render();
+          endRound(0);
           return;
         }
 
-        turn = 'ai';
+        if (!isFirstTurn) {
+          currentTurnIndex = 1; 
+        } else {
+          if (trainName !== 'player') {
+            isFirstTurn = false;
+            currentTurnIndex = 1;
+          }
+        }
         render();
       } else {
-        alert("Invalid move! The tile number must match the open end of the train.");
+        showToast("Invalid move! Tile does not match the active train end.");
       }
     }
 
@@ -427,61 +789,252 @@
 
     function makeAIMove() {
       if (gameOver) return;
+      const aiIdx = currentTurnIndex - 1;
+      const botName = getBotName(aiIdx);
+      let aiHand = aiHands[aiIdx];
+      let aiTrain = aiTrains[aiIdx];
 
-      let played = false;
-      for (let i = 0; i < aiHand.length; i++) {
-        const tile = aiHand[i];
-        if (isValidPlay(tile, aiTrain)) {
-          let playedTile = { ...tile };
-          const endVal = getTrainEnd(aiTrain);
-          if (playedTile.left !== endVal && playedTile.right === endVal) {
-            playedTile.right = tile.left;
-            playedTile.left = tile.right;
+      let playedAny = false;
+      let keepingGoing = true;
+      let actionDesc = "";
+
+      while (keepingGoing) {
+        keepingGoing = false;
+        let played = false;
+
+        for (let i = 0; i < aiHand.length; i++) {
+          const tile = aiHand[i];
+
+          let targetTrainsList = [{ track: aiTrain, name: `their own train` }, { track: mexicanTrain, name: `the Mexican train` }];
+          if (playerTrainOpen) targetTrainsList.push({ track: playerTrain, name: `your train` });
+          for (let k = 0; k < aiTrains.length; k++) {
+            if (k !== aiIdx && aiTrainsOpen[k]) targetTrainsList.push({ track: aiTrains[k], name: `${getBotName(k)}'s train` });
           }
-          aiTrain.push(playedTile);
-          aiHand.splice(i, 1);
-          aiTrainOpen = false;
-          played = true;
-          break;
-        } else if (isValidPlay(tile, mexicanTrain)) {
-          let playedTile = { ...tile };
-          const endVal = getTrainEnd(mexicanTrain);
-          if (playedTile.left !== endVal && playedTile.right === endVal) {
-            playedTile.right = tile.left;
-            playedTile.left = tile.right;
+
+          for (let tObj of targetTrainsList) {
+            let t = tObj.track;
+            if (pendingDouble) {
+              if (isValidPlay(tile, t) && (tile.left === pendingDouble.right || tile.right === pendingDouble.right)) {
+                let playedTile = { ...tile };
+                let endVal = getTrainEnd(t);
+                if (playedTile.left !== endVal && playedTile.right === endVal) {
+                  playedTile.right = tile.left;
+                  playedTile.left = tile.right;
+                }
+                t.push(playedTile);
+                aiHand.splice(i, 1);
+                pendingDouble = null;
+                played = true;
+                playedAny = true;
+                playTileSound('place');
+                actionDesc = `${botName} played [${playedTile.left}|${playedTile.right}] on ${tObj.name}`;
+                break;
+              }
+            } else {
+              if (isValidPlay(tile, t)) {
+                let playedTile = { ...tile };
+                let endVal = getTrainEnd(t);
+                if (playedTile.left !== endVal && playedTile.right === endVal) {
+                  playedTile.right = tile.left;
+                  playedTile.left = tile.right;
+                }
+                t.push(playedTile);
+                aiHand.splice(i, 1);
+                aiTrainsOpen[aiIdx] = false;
+                
+                if (playedTile.isDouble) {
+                  pendingDouble = playedTile;
+                  actionDesc = `${botName} played double [${playedTile.left}|${playedTile.right}] on ${tObj.name}`;
+                } else {
+                  actionDesc = `${botName} played [${playedTile.left}|${playedTile.right}] on ${tObj.name}`;
+                }
+                played = true;
+                playedAny = true;
+                playTileSound('place');
+                break;
+              }
+            }
           }
-          mexicanTrain.push(playedTile);
-          aiHand.splice(i, 1);
-          played = true;
-          break;
+          if (played) break;
+        }
+
+        if (aiHand.length === 0) {
+          endRound(currentTurnIndex);
+          return;
         }
       }
 
-      if (!played) {
-        aiTrainOpen = true;
-        aiHand.push({ left: Math.floor(Math.random() * 13), right: Math.floor(Math.random() * 13) });
+      if (!playedAny) {
+        if (boneyard.length > 0) {
+          let drawn = boneyard.pop();
+          aiHand.push(drawn);
+          playTileSound('draw');
+          actionDesc = `${botName} drew a tile from the boneyard`;
+        } else {
+          aiTrainsOpen[aiIdx] = true; 
+          playTileSound('click');
+          actionDesc = `${botName} could not play and opened their train`;
+        }
       }
 
-      if (aiHand.length === 0) {
-        subStatusText.textContent = "AI emptied its hand! AI wins!";
-        gameOver = true;
+      lastAiActionMessage = actionDesc;
+      currentTurnIndex = (currentTurnIndex + 1) % totalPlayers;
+      isFirstTurn = false;
+      render();
+    }
+
+    function endRound(winnerIndex) {
+      gameOver = true;
+      let roundScoresObj = { round: roundIndex + 1, engine: `${engineValue}-${engineValue}`, player: 0, ais: new Array(3).fill(0) };
+
+      if (winnerIndex === 0) {
+        let totalAiPips = 0;
+        aiHands.forEach(hand => hand.forEach(t => totalAiPips += (t.left + t.right)));
+        playerScore += 0;
+        
+        let aiIdxCount = 0;
+        aiHands.forEach(hand => {
+          let pips = 0;
+          hand.forEach(t => pips += (t.left + t.right));
+          aiScores[aiIdxCount] += pips;
+          roundScoresObj.ais[aiIdxCount] = pips;
+          aiIdxCount++;
+        });
+
+        lastAiActionMessage = `You won Round ${roundIndex + 1}! Opponents scored penalty pips.`;
+      } else {
+        let pipSum = 0;
+        playerHand.forEach(t => pipSum += (t.left + t.right));
+        playerScore += pipSum;
+        roundScoresObj.player = pipSum;
+
+        let aiIdxCount = 0;
+        aiHands.forEach(hand => {
+          let pips = 0;
+          if (aiIdxCount === (winnerIndex - 1)) {
+            pips = 0;
+          } else {
+            hand.forEach(t => pips += (t.left + t.right));
+          }
+          aiScores[aiIdxCount] += pips;
+          roundScoresObj.ais[aiIdxCount] = pips;
+          aiIdxCount++;
+        });
+
+        lastAiActionMessage = `${getBotName(winnerIndex - 1)} won Round ${roundIndex + 1}! You scored ${pipSum} penalty pips.`;
+      }
+
+      roundHistoryScores.push(roundScoresObj);
+      updateScoreboardUI();
+
+      subStatusText.textContent = lastAiActionMessage;
+
+      if (roundIndex < 12) {
+        nextRoundBtn.classList.remove('hidden');
+      } else {
+        subStatusText.textContent += ` Final Game Over! Total Player Score: ${playerScore} pts.`;
+      }
+      render();
+    }
+
+    function updateScoreboardUI() {
+      scoreDisplayYou.textContent = playerScore;
+      for (let i = 0; i < 3; i++) {
+        const scoreEl = document.getElementById(`score-display-ai-${i}`);
+        if (scoreEl) {
+          scoreEl.textContent = aiScores[i] || 0;
+        }
+      }
+    }
+
+    playerCountSelect.addEventListener('change', () => {
+      initGame(true);
+    });
+
+    nextRoundBtn.addEventListener('click', () => {
+      roundIndex++;
+      initGame(false);
+    });
+
+    // Full Row Click & Drag-and-Drop Setup for Player Train & Mexican Train
+    const dropPlayerTrain = document.getElementById('drop-player-train');
+    dropPlayerTrain.addEventListener('click', () => playTile('player'));
+    dropPlayerTrain.addEventListener('dragover', (e) => e.preventDefault());
+    dropPlayerTrain.addEventListener('dragenter', () => dropPlayerTrain.classList.add('drop-target-hover'));
+    dropPlayerTrain.addEventListener('dragleave', () => dropPlayerTrain.classList.remove('drop-target-hover'));
+    dropPlayerTrain.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropPlayerTrain.classList.remove('drop-target-hover');
+      const tileIdx = parseInt(e.dataTransfer.getData('text/plain'));
+      if (!isNaN(tileIdx)) {
+        selectedTileIndex = tileIdx;
+        playTile('player');
+      }
+    });
+
+    const dropMexicanTrain = document.getElementById('drop-mexican-train');
+    dropMexicanTrain.addEventListener('click', () => playTile('mexican'));
+    dropMexicanTrain.addEventListener('dragover', (e) => e.preventDefault());
+    dropMexicanTrain.addEventListener('dragenter', () => dropMexicanTrain.classList.add('drop-target-hover'));
+    dropMexicanTrain.addEventListener('dragleave', () => dropMexicanTrain.classList.remove('drop-target-hover'));
+    dropMexicanTrain.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropMexicanTrain.classList.remove('drop-target-hover');
+      const tileIdx = parseInt(e.dataTransfer.getData('text/plain'));
+      if (!isNaN(tileIdx)) {
+        selectedTileIndex = tileIdx;
+        playTile('mexican');
+      }
+    });
+
+    document.getElementById('draw-btn').addEventListener('click', () => {
+      if (currentTurnIndex !== 0 || gameOver) return;
+      if (boneyard.length === 0) {
+        showToast("Boneyard is empty! You must open your train.");
+        playerTrainOpen = true; 
+        currentTurnIndex = 1;
         render();
         return;
       }
 
-      turn = 'player';
+      saveStateForUndo();
+      let drawn = boneyard.pop();
+      playerHand.push(drawn);
+      playTileSound('draw');
+      lastAiActionMessage = "";
+
+      if (isValidPlay(drawn, playerTrain) || isValidPlay(drawn, mexicanTrain)) {
+        subStatusText.textContent = "Drew a playable tile! You can play it now.";
+      } else {
+        playerTrainOpen = true;
+        subStatusText.textContent = "Drew unplayable tile. Your train is now marked Open, turn ends.";
+        currentTurnIndex = 1;
+        isFirstTurn = false;
+      }
       render();
-    }
+    });
 
-    // Event Listeners
-    document.getElementById('play-player-train').addEventListener('click', () => playTile('player'));
-    document.getElementById('play-mexican-train').addEventListener('click', () => playTile('mexican'));
-    document.getElementById('play-ai-train').addEventListener('click', () => playTile('ai'));
-
-    document.getElementById('draw-btn').addEventListener('click', () => {
-      if (turn !== 'player' || gameOver) return;
-      playerHand.push({ left: Math.floor(Math.random() * 13), right: Math.floor(Math.random() * 13) });
-      subStatusText.textContent = "You drew a tile. Your train is now marked open for opponents.";
+    document.getElementById('undo-btn').addEventListener('click', () => {
+      if (!historyState || gameOver) {
+        showToast("No previous move to undo!");
+        return;
+      }
+      boneyard = historyState.boneyard;
+      playerHand = historyState.playerHand;
+      aiHands = historyState.aiHands;
+      playerTrain = historyState.playerTrain;
+      mexicanTrain = historyState.mexicanTrain;
+      aiTrains = historyState.aiTrains;
+      currentTurnIndex = historyState.currentTurnIndex;
+      isFirstTurn = historyState.isFirstTurn;
+      playerTrainOpen = historyState.playerTrainOpen;
+      aiTrainsOpen = historyState.aiTrainsOpen;
+      pendingDouble = historyState.pendingDouble;
+      gameOver = historyState.gameOver;
+      lastAiActionMessage = historyState.lastAiActionMessage;
+      historyState = null;
+      selectedTileIndex = null;
+      playTileSound('click');
       render();
     });
 
@@ -495,7 +1048,7 @@
       }
     });
 
-    document.getElementById('new-game-btn').addEventListener('click', initGame);
+    document.getElementById('new-game-btn').addEventListener('click', () => initGame(true));
 
     // Rules Modal controls
     const rulesModal = document.getElementById('rules-modal');
@@ -503,7 +1056,7 @@
     document.getElementById('close-rules').addEventListener('click', () => rulesModal.classList.add('hidden'));
     document.getElementById('close-rules-btn').addEventListener('click', () => rulesModal.classList.add('hidden'));
 
-    initGame();
+    initGame(true);
   </script>
 </body>
 </html>
